@@ -17,6 +17,24 @@ let gameAreaField = document.querySelector("#handField");
 let gameAreaDeck = document.querySelector("#deck");
 let gameAreaTable = document.querySelector("#table");
 
+//Game related instances
+const player = new Player(gameAreaPlayer);
+const cpu = new CPU(gameAreaCPU);
+const table = new Field(gameAreaField);
+const hanafudaGame = new Hanafuda(window.hanafudaOptions, [player,cpu],table);
+
+//Home Page Events
+startButton.addEventListener("click", gameInitialise)
+
+optionButton.addEventListener("click",()=>{
+    if(!document.querySelector("#gameOptionForm")){
+        const generatedForm = HanafudaGameOptions.generateGameOptionFormElement();
+        optionDialog.appendChild(generatedForm);
+    }
+    optionDialog.showModal();
+})
+
+
 //Custom Events
 const eventGameStart = new CustomEvent("gamestart");
 const eventTurnEnd = new CustomEvent("turnend");
@@ -24,14 +42,13 @@ const eventYaku = new CustomEvent("yaku");
 
 //Events Testing Ground
 document.body.addEventListener("pickcard",(event)=>{
-    console.log("Player selected : ",event.detail);
-    //console.log("PickCardHandler",performance.now())
+    // console.log("Player selected : ",event.detail);
     const findMatch = new CustomEvent("findmatch",{detail:event.detail});
     gameAreaField.querySelector("#table").dispatchEvent(findMatch);
 })
 
 document.body.addEventListener("unpickcard",(event)=>{
-    //console.log("Cancel please");
+    // console.log("Cancel please");
     document.querySelectorAll(".possibleMatch").forEach((elm)=>{
         elm.classList.remove("possibleMatch");
     })
@@ -42,19 +59,14 @@ document.body.addEventListener("firstactiondone",(event)=>{
     gameAreaDeck.dispatchEvent(drawCardFromDeck);
 })
 
-
+document.body.addEventListener("turnend",(event)=>{
+    const currentTurnPlayer = event.detail;
+    console.log("This guy's turn ended:");
+    console.log(currentTurnPlayer);
+    hanafudaGame.checkPlayerHandForYaku(currentTurnPlayer);
+})
 
 //End of testing area
-
-startButton.addEventListener("click",gameInitialise)
-
-optionButton.addEventListener("click",()=>{
-    if(!document.querySelector("#gameOptionForm")){
-        const generatedForm = HanafudaGameOptions.generateGameOptionFormElement();
-        optionDialog.appendChild(generatedForm);
-    }
-    optionDialog.showModal();
-})
 
 function gameInitialise(event){
     let clickTime;
@@ -78,20 +90,18 @@ function gameInitialise(event){
         };
     })
 
-    const player = new Player(gameAreaPlayer);
-    const cpu = new CPU(gameAreaCPU);
-    const table = new Field(gameAreaField);
     window.hanafudaOptions ??= new HanafudaGameOptions();
-    const hanafudaGame = new Hanafuda(window.hanafudaOptions, [player,cpu],table);
     hanafudaGame.determineOyaKen();
     const masterDeck = hanafudaGame.newDeck(gameAreaDeck);
     let initialDrawRecipientOrder = player.oyaOrKo === "Oya" ? [player,table,cpu] : [cpu,table,player];
     do{
         initialDrawRecipientOrder.forEach((entity)=>{
             let drawnCards = masterDeck.draw(2);
-            entity.receive(drawnCards);
+            entity.receive(drawnCards,false);
         })
     }while(masterDeck.remainingCardCount > 24);
+
+    player.artificialInjectCard();
 
     console.log(player);
     console.log(cpu);
