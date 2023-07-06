@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 user-scalable=0">
+    <title>花札 こいこい</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=New+Tegomin&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Infant&display=swap" rel="stylesheet">
+    <script src="js/hanafuda.js" type="module" defer></script>
+    <script src="js/main.js" type="module" defer></script>
+    <style>
+    </style>
+</head>
+<body>
+    <div id="home">
+        <div id="homePageGraphics" style="border:1px solid red"></div>
+        <div id="homeMenu">
+            <button id="buttonGameStart">Start</button>
+            <button id="buttonGameOption">Option</button>
+            <button id="buttonHowTo"><a href="https://www.nintendo.co.jp/others/hanafuda_kabufuda/howtoplay/index.html" target="_blank">How to Play</a></button>
+        </div>
+        <dialog id="gameOptionDialog" lang="jp"></dialog>
+    </div>
+    <main id="game">
+        <div class="areaHand" id="handCPU"></div>
+        <div class="areaField" id="handField">
+            <div id="deck"></div>
+        </div>
+        <div class="areaHand" id="handPlayer"></div>
+    </main>
+</body>
+</html>

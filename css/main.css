@@ -1,0 +1,413 @@
+@import url("quasi-counter.css");
+
+*{
+    box-sizing: border-box;
+}
+
+html{
+    font-family: "Cormorant Infant", Georgia, serif;
+}
+
+*[lang="jp"]{
+   font-family: "New Tegomin", serif;
+   writing-mode: vertical-rl;
+}
+
+@media (hover:hover){
+    #home button:hover{
+        /* background: linear-gradient(to right,#FFD700,20%,transparent); */
+        background: linear-gradient(to right,#FFD700ff,20%,#FFD70000);
+        border-bottom:1px solid #bda106;
+        transform: translateX(10px)
+    }
+
+    .hanafudaCards:hover{
+        outline: red solid 2px;
+        z-index:99;
+    }
+}
+/* ::-webkit-scrollbar {
+    inline-size: 8px;
+    block-size: 8px;
+}
+::-webkit-scrollbar-track {
+    background: lavender;
+}
+::-webkit-scrollbar-thumb {
+    background: pink;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: plum;
+} */
+
+a[target="_blank"]::after{
+    content:"";
+    display:inline-block;
+    background-image: url(../assets/icon/externalLink_20.svg);
+    background-size: contain;
+    background-repeat: no-repeat;
+    height:0.7em;
+    aspect-ratio: 1;
+    margin-left: 0.3rem;
+    vertical-align: middle;
+}
+button > a{
+    text-decoration: none;
+    color:inherit;
+}
+
+/*buttonLike class refers to img/other elm used as button*/
+:is(.buttonLike,button){
+    cursor: pointer;
+}
+
+body{
+    margin:auto;
+    height: min(97dvh, 900px);
+    width: min(95vw, 1000px);
+    display:grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    box-shadow:0 0 1rem gray;
+    filter: brightness(1);
+}
+
+/* body .hide{
+    z-index:-1;
+} */
+
+#home{
+    z-index:1;
+    grid-area: 1 / 1 / -1 / -1;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 20%;
+    align-items: start;
+    justify-items: start;
+    padding: 2rem;
+    background-color:#fcd7dd;
+    background-size:30%;
+    background-repeat: repeat-x;
+    background-image:url(../assets/textures/sakura_fubuki.png);
+    animation-name: sakura;
+    animation-iteration-count: infinite;
+    animation-duration: 20s;
+    animation-timing-function: linear;
+}
+
+@keyframes sakura{
+    0%{background-position:0% -25%;}
+    50%{background-position:15% 70%;}
+    100%{background-position:5% 150%;}
+}
+
+@media screen and (min-width:650px){
+    #home{
+        background-size:25%;
+    }
+}
+
+#home #homeMenu{
+    display:flex;
+    flex-flow:column wrap;
+    column-gap:1rem;
+    row-gap:1rem;
+    justify-content: flex-start;
+    align-content: flex-start;
+    align-items: stretch;
+    padding-left: 1.5rem;
+}
+
+/* For some reason the linear-gradient to transparent won't work properly in Firefox. 
+    Have to use same colors, but w/ ff --> 00 (hex color code suffix) alpha value */
+
+#home button{
+    /* background: linear-gradient(to right,plum,20%,transparent); */
+    background: linear-gradient(to right,#DDA0DDff,20%,#DDA0DD00);
+    border:transparent;
+    border-bottom:1px solid #FFD700;
+    font-size: 1.2rem;
+    font-family: "Cormorant Infant", Georgia, serif;
+    text-transform: uppercase;
+    text-align: left;
+}
+
+#home #gameOptionDialog{
+    font-size: clamp(14px,1rem,20px);
+    border-color:#4C8451;
+    background-color:#77ba7d;
+    /* max-width: 85vw; */
+}
+#home #gameOptionDialog::backdrop{
+    background-color: rgba(255,183,197,0.6);
+}
+#home #gameOptionForm fieldset{
+    border:1px solid #A0764B;
+    background-color: #E6D3B5;
+    margin: 1rem;
+}
+#home #gameOptionForm legend{
+    background-color: #D3BD92;
+    border-radius: 10%;
+    border: 1px solid #A0764B;
+    padding: .5rem 0;
+}
+
+/*main or game area styles*/
+main{
+    z-index:-1;
+    grid-area: 1 / 1 / -1 / -1;
+    background-color: #fce1fb;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(3,1fr);
+    align-items: stretch;
+    justify-items: stretch;
+}
+
+main > .areaField{
+    container-name: cardsize;
+    container-type: size;
+    padding:1rem;
+    background-color: #E6D3B5;
+    display:grid;
+    grid-template-columns: min-content 1fr;
+    grid-template-rows: 1fr;
+    place-items: center center;
+}
+
+.areaField > #deck{
+    margin-right: 1rem;
+    position:relative;
+}
+
+#deck > .hanafudaCards{
+    z-index:1;
+    position:absolute;
+}
+
+.areaField > #deck::after{
+    z-index:2;
+    position: absolute;
+    bottom:0%;
+    right:0%;
+    /* transform:translate(2px,2px); */
+    content:"山札";
+    border:1px solid #DDA0DD;
+    background-color: #fce1fb;
+}
+
+.areaField > #table{
+    /* display:grid;
+    grid-template-columns: repeat(7,1fr);
+    grid-template-rows: repeat(2,1fr);
+    grid-auto-columns: 1fr;
+    grid-auto-rows: 1fr;
+    grid-auto-flow: row; */ 
+    display:flex;
+    flex-flow: row wrap;
+    justify-content: flex-start;
+    align-content: space-around;
+    align-items: center;
+    column-gap:.5rem;
+    row-gap:.5rem;
+    overflow: auto;
+    padding:2px;
+}
+
+main > .areaHand{
+    container-name: cardsize;
+    container-type: size;
+    padding: 1rem 1rem 0 1rem;
+    background-color:#77ba7d;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: flex-start;
+    align-content: flex-start;
+    align-items: flex-start;
+    row-gap:0.65rem;
+    column-gap: 1rem;
+    overflow: auto;
+}
+
+.hand{
+    display:flex;
+    flex-flow:row wrap;
+    justify-content: flex-start;
+    align-content: flex-start;
+    align-items: center;
+    column-gap: .5rem;
+}
+
+.captured{
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    position:relative;
+    backdrop-filter: invert(50%);
+}
+
+.captured::after{
+    content:"24";
+    font-size: .75rem;
+    margin-left:.2px;
+    position: absolute;
+    left:100%;
+    bottom:0%;
+}
+
+.captured > .hanafudaCards{
+    grid-area: 1 / 1 / -1 / -1;
+}
+
+.hanafudaCards{
+    /* border:1px solid black; */
+    width:60px;
+    aspect-ratio:0.6;
+    display:inline-block;
+    /*Original svg from wikipedia is 512 x 839 px.*/
+    background-color: #696969;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+}
+
+@container cardsize (width >= 860px){
+    .hand{
+        column-gap: .8rem;
+    }
+    .hanafudaCards{
+        width:70px;
+        background-color: seagreen;
+    }
+    .captured > .hanafudaCards{
+        margin-left:calc(15px * (var(--index) - 1));
+    }
+}
+
+@container cardsize (760px <= width < 860px){
+    .hand{
+        column-gap: .5rem;
+    }
+    .hanafudaCards{
+        width:68px;
+        background-color: palegreen;
+    }
+    .captured > .hanafudaCards{
+        margin-left:calc(12px * (var(--index) - 1));
+    }
+}
+
+@container cardsize (710px <= width < 760px){
+    .hand{
+        column-gap: .4rem;
+    }
+    .hanafudaCards{
+        width:65px;
+        background-color: skyblue;
+    }
+    .captured > .hanafudaCards{
+        margin-left:calc(9px * (var(--index) - 1));
+    }
+}
+
+@container cardsize (610px <= width < 710px){
+    .hand{
+        column-gap: .2rem;
+    }
+    .hanafudaCards{
+        width:60px;
+        background-color: paleturquoise;
+    }
+    .captured > .hanafudaCards{
+        margin-left:calc(7px * (var(--index) - 1));
+    }
+}
+
+@container cardsize (510px <= width < 610px){
+    .hand{
+        column-gap: .15rem;
+    }
+    .hanafudaCards{
+        width:55px;
+        background-color: salmon;
+    }
+    .captured > .hanafudaCards{
+        margin-left:calc(5px * (var(--index) - 1));
+    }
+}
+
+@container cardsize (410px <= width < 510px){
+    .hand{
+        column-gap: .15rem;
+    }
+    .hanafudaCards{
+        width:45px;
+        background-color: lavender;
+    }
+    .captured > .hanafudaCards{
+        margin-left:calc(5px * (var(--index) - 1));
+    }
+}
+
+@container cardsize (width < 410px){
+    .hand{
+        column-gap: .15rem;
+    }
+    .hanafudaCards{
+        width:40px;
+        background-color: pink;
+    }
+    .captured > .hanafudaCards{
+        margin-left:calc(5px * (var(--index) - 1));
+    }
+    .areaField > #table{
+        gap:.2rem;
+    }
+}
+
+.shiftBlack{
+    animation-name: fadeToBlack;
+    animation-timing-function: linear;
+    animation-duration: 1.5s;
+    animation-iteration-count: 1;
+}
+
+@keyframes fadeToBlack{
+    from{filter:brightness(100%);}
+    to{filter:brightness(0%);}
+}
+
+.shiftWhite{
+    animation-name: fadeIntoWiew;
+    animation-timing-function: linear;
+    animation-duration: 2s;
+    animation-delay: .5s;
+    animation-iteration-count: 1;
+}
+
+@keyframes fadeIntoWiew{
+    from{filter:brightness(0%);}
+    to{filter:brightness(100%);}
+}
+
+/* common */
+.picked{
+    outline: teal solid 2px;
+}
+
+.possibleMatch{
+    outline:tomato solid 2px;
+    animation-name: flashingOutline;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes flashingOutline{
+    from{outline:tomato solid 2px;}
+    to{outline:white solid 2px;}
+}
+
+
