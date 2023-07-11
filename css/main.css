@@ -22,9 +22,17 @@ html{
     }
 
     .hanafudaCards:hover{
-        outline: red solid 2px;
+        /* outline: red solid 2px; */
+        box-shadow: 0 0 3px 3px #476580;
         z-index:99;
     }
+    .yesButton:hover{
+        text-shadow: #1CAC78 4px 3px 5px;
+    }
+    .noButton:hover{
+        text-shadow: #F2003C 4px 3px 5px;
+    }
+    
 }
 /* ::-webkit-scrollbar {
     inline-size: 8px;
@@ -133,25 +141,50 @@ body{
     text-align: left;
 }
 
-#home #gameOptionDialog{
+:is(.newYakuNotification, #gameOptionDialog, #koiKoiDialog){
     font-size: clamp(14px,1rem,20px);
     border-color:#4C8451;
     background-color:#77ba7d;
     /* max-width: 85vw; */
 }
-#home #gameOptionDialog::backdrop{
+:is(.newYakuNotification, #gameOptionDialog, #koiKoiDialog)::backdrop{
     background-color: rgba(255,183,197,0.6);
 }
-#home #gameOptionForm fieldset{
+:is(.newYakuNotification, #gameOptionDialog, #koiKoiDialog) fieldset{
     border:1px solid #A0764B;
     background-color: #E6D3B5;
     margin: 1rem;
 }
-#home #gameOptionForm legend{
-    background-color: #D3BD92;
-    border-radius: 10%;
+:is(.newYakuNotification, #gameOptionDialog, #koiKoiDialog) legend{
     border: 1px solid #A0764B;
+    background-color: #D3BD92;
     padding: .5rem 0;
+}
+#roundSummaryYaku > .roundResultText{
+    padding:2px;
+    border:1px solid #A0764B;
+    background-color: #E6D3B5;
+    
+}
+.roundResultText > .highlights{
+    color:#CC5500
+}
+
+:is(.yesButton,.noButton){
+    background-color: #FCD7DD00;
+    margin-inline-end: 1.5rem;
+    border:none;
+    font-size: 1em;
+    font-family: inherit;
+}
+:is(.yesButton,.noButton):active{
+    font-weight: bold;
+}
+.yesButton{
+    color: #018749;
+}
+.noButton{
+    color: #EF0107;
 }
 
 /*main or game area styles*/
@@ -171,6 +204,10 @@ main > .areaField{
     container-type: size;
     padding:1rem;
     background-color: #E6D3B5;
+    /* background-color: #f0e0c7; */
+    /* background-image: url(../assets/textures/paper.png);
+    background-repeat: repeat;
+    background-blend-mode: luminosity; */
     display:grid;
     grid-template-columns: min-content 1fr;
     grid-template-rows: 1fr;
@@ -212,15 +249,16 @@ main > .areaField{
     align-items: center;
     column-gap:.5rem;
     row-gap:.5rem;
-    overflow: auto;
+    /* overflow: auto; */
     padding:2px;
 }
 
 main > .areaHand{
     container-name: cardsize;
     container-type: size;
-    padding: 1rem 1rem 0 1rem;
+    padding: 1rem 1rem 0 2rem; /*Left added 0.8rem To fit the areaHand ::before*/
     background-color:#77ba7d;
+    /* background-color:#b9e6b5; */
     display: flex;
     flex-flow: row wrap;
     justify-content: flex-start;
@@ -229,7 +267,21 @@ main > .areaHand{
     row-gap:0.65rem;
     column-gap: 1rem;
     overflow: auto;
+    position: relative;
 }
+
+.areaHand::before{
+    width:max-content;
+    position:absolute;
+    top: 0%;
+    left: 0%;
+    background-image: linear-gradient(to bottom,#4E718F,#8BB7C2ff,#8BB7C202);
+    content: attr(data-playername)'  'attr(data-points)' 文';
+    font-size:1rem;
+    font-family: "New Tegomin", serif;
+    writing-mode: vertical-rl;
+    padding-inline-start: 5px;
+} 
 
 .hand{
     display:flex;
@@ -368,6 +420,23 @@ main > .areaHand{
     }
 }
 
+/*All Kinds of Animation Classes*/
+.picked{
+    outline: #00637C solid 2px;
+}
+
+.possibleMatch{
+    outline:#6060C0ff solid 2px;
+    animation-name: flashingOutline;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes flashingOutline{
+    from{outline:#6060C0ff solid 2px;}
+    to{outline:#6060C000 solid 2px;}
+}
+
 .shiftBlack{
     animation-name: fadeToBlack;
     animation-timing-function: linear;
@@ -393,21 +462,14 @@ main > .areaHand{
     to{filter:brightness(100%);}
 }
 
-/* common */
-.picked{
-    outline: teal solid 2px;
-}
-
-.possibleMatch{
-    outline:tomato solid 2px;
-    animation-name: flashingOutline;
+.fadeIn{
+    animation-name: fadeIn;
+    animation-timing-function: linear;
+    animation-delay: (var(--index) * 0.5s);
     animation-duration: 1s;
-    animation-iteration-count: infinite;
 }
 
-@keyframes flashingOutline{
-    from{outline:tomato solid 2px;}
-    to{outline:white solid 2px;}
+@keyframes fadeIn{
+    from{opacity:0;}
+    to{opacity:1;}
 }
-
-

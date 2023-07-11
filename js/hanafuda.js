@@ -34,14 +34,22 @@ class CardDeck{
         return drawnCard;
         //ALWAYS return an array, even just one
     }
-    renderDeck(){
-        const deckDiv = this.accessElement();
+    renderDeck(){ //this will never work with >2 players
+        const deckIns = this;
+        const area = this.accessElement();
+        
+        const previousDeckContent = area.querySelector("#deck");
+        if (previousDeckContent) previousDeckContent.remove();
+
+        const deckDiv = document.createElement("div");
+        deckDiv.setAttribute("id","deck");
         deckDiv.setAttribute("lang","jp");
         deckDiv.setAttribute("class","hanafudaCards");
 
-        deckDiv.addEventListener("drawcardfromdeck",(event)=>{
+        function drawCardHandler(event){
             const currentPlayer = event.detail; //contain instance of Player
-            const [drawnCard] = this.draw(1); 
+            const [drawnCard] = deckIns.draw(1); 
+
             console.log("Drawn From Deck",drawnCard);
 
             const drawncardDiv = drawnCard.renderCard({faceUp:true,listenerType:"none"});
@@ -51,7 +59,10 @@ class CardDeck{
             
             const pickCard = new CustomEvent("pickcard",{detail:drawnCard});
             document.body.dispatchEvent(pickCard);
-        })
+        }
+
+        deckDiv.addEventListener("drawcardfromdeck",drawCardHandler);
+        area.insertAdjacentElement("afterbegin",deckDiv);
     }
 }
 
@@ -76,7 +87,7 @@ class Card{
     }
 
     get cardIdMonthNo(){
-        return this.cardId.slice(0,2);
+        return this.cardId.slice(0,2); //this returns a string! "01", if need number, need pass it to Number.parseInt()
     }
 
     get cardFullName(){
@@ -128,7 +139,7 @@ class Card{
         //this one don't have issue with owner as first action card always have an owner assigned, rather than just "Deck"
 
         let currentlySelectedCard;
-        const clickPlayerCardHandler = function(event){
+        const clickPlayerCardHandler = function clickHand(event){
             const existingSelectedCard = document.querySelector(".picked");
             if(currentlySelectedCard !== event.target){
                 event.target.classList.toggle("picked");
@@ -146,7 +157,7 @@ class Card{
             }
         }
 
-        const clickTableCardHandler = function(event){
+        const clickTableCardHandler = function clickTable(event){
             let isMatch = event.target.classList.contains("possibleMatch");
             let hasPicked = document.querySelector(".picked");
             if (hasPicked && isMatch){
@@ -174,65 +185,108 @@ class Card{
         if (listenerType !== "none") cardDiv.addEventListener("click",listenerToUse);
 
         //Testing Events
-        cardDiv.addEventListener("capturecard",(event)=>{
-            // console.log("Picked : ",this);
-            // console.log("Capture Field : ",event.detail);
+        // cardDiv.addEventListener("capturecard",(event)=>{
+        //     // console.log("Picked : ",this);
+        //     // console.log("Capture Field : ",event.detail);
+        //     const fieldCardToCapture = event.detail; //contain instance if Card (located at Field)
+        //     const pickedCard = this;
+        //     const pickedCardOwner = pickedCard.getOwner();
+        //     pickedCardOwner?.giveAwayCard(this);
+        //     fieldCardToCapture.getOwner()?.giveAwayCard(fieldCardToCapture);
+        //     pickedCardOwner.capture(pickedCard,fieldCardToCapture);
+
+        //     const actionComplete = new CustomEvent("actioncompleted",{detail:pickedCardOwner});
+        //     pickedCard.associatedElm.dispatchEvent(actionComplete);
+
+        //     // const triggeredByDeckDraw = document.querySelector(".drawnFromDeck");
+        //     // if (triggeredByDeckDraw){setTimeout(()=>triggeredByDeckDraw.remove(),1000)}
+
+        //     // //Trial
+        //     // const turnEnd = new CustomEvent("turnend",{detail:pickedCardOwner});
+        //     // pickedCardOwner.turnActionSuccess();
+        //     // const pickedCardOwnerTurnActionCount = pickedCardOwner.turnActionPerformed;
+        //     // if (pickedCardOwnerTurnActionCount === 1) document.body.dispatchEvent(firstActionDone);
+        //     // else if (pickedCardOwnerTurnActionCount >= 2) document.body.dispatchEvent(turnEnd);
+        // })
+
+        // cardDiv.addEventListener("dealtofield",(event)=>{
+        //     const fieldInstance = event.detail; //contain instance of Field
+        //     const pickedCard = this;
+        //     const pickedCardOwner = pickedCard.getOwner();
+        //     const dealtCard = pickedCardOwner?.giveAwayCard(pickedCard);
+        //     fieldInstance.receive(dealtCard);
+
+        //     const actionComplete = new CustomEvent("actioncompleted",{detail:pickedCardOwner});
+        //     pickedCard.associatedElm.dispatchEvent(actionComplete);
+
+        //     // const triggeredByDeckDraw = document.querySelector(".drawnFromDeck");
+        //     // if (triggeredByDeckDraw){setTimeout(()=>triggeredByDeckDraw.remove(),1000)}
+
+        //     // //Trial
+        //     // pickedCardOwner.turnActionSuccess();
+        //     // const pickedCardOwnerTurnActionCount = pickedCardOwner.turnActionPerformed;
+        //     // if (pickedCardOwnerTurnActionCount === 1) document.body.dispatchEvent(firstActionDone);
+        //     // else if (pickedCardOwnerTurnActionCount >= 2) document.body.dispatchEvent(turnEnd);
+        // })
+
+        const cardIns = this;
+
+        function captureCardHandler(event){
             const fieldCardToCapture = event.detail; //contain instance if Card (located at Field)
-            const pickedCard = this;
+            const pickedCard = cardIns;
             const pickedCardOwner = pickedCard.getOwner();
-            pickedCardOwner?.giveAwayCard(this);
+            pickedCardOwner?.giveAwayCard(pickedCard);
             fieldCardToCapture.getOwner()?.giveAwayCard(fieldCardToCapture);
             pickedCardOwner.capture(pickedCard,fieldCardToCapture);
 
             const actionComplete = new CustomEvent("actioncompleted",{detail:pickedCardOwner});
             pickedCard.associatedElm.dispatchEvent(actionComplete);
+        }
 
-            // const triggeredByDeckDraw = document.querySelector(".drawnFromDeck");
-            // if (triggeredByDeckDraw){setTimeout(()=>triggeredByDeckDraw.remove(),1000)}
-
-            // //Trial
-            // const turnEnd = new CustomEvent("turnend",{detail:pickedCardOwner});
-            // pickedCardOwner.turnActionSuccess();
-            // const pickedCardOwnerTurnActionCount = pickedCardOwner.turnActionPerformed;
-            // if (pickedCardOwnerTurnActionCount === 1) document.body.dispatchEvent(firstActionDone);
-            // else if (pickedCardOwnerTurnActionCount >= 2) document.body.dispatchEvent(turnEnd);
-        })
-
-        cardDiv.addEventListener("dealtofield",(event)=>{
+        function dealToFieldHandler(event){
             const fieldInstance = event.detail; //contain instance of Field
-            const pickedCard = this;
+            const pickedCard = cardIns;
             const pickedCardOwner = pickedCard.getOwner();
             const dealtCard = pickedCardOwner?.giveAwayCard(pickedCard);
             fieldInstance.receive(dealtCard);
 
+            console.log(pickedCardOwner,"dealt the following Card:",pickedCard)
+
             const actionComplete = new CustomEvent("actioncompleted",{detail:pickedCardOwner});
             pickedCard.associatedElm.dispatchEvent(actionComplete);
+        }
 
-            // const triggeredByDeckDraw = document.querySelector(".drawnFromDeck");
-            // if (triggeredByDeckDraw){setTimeout(()=>triggeredByDeckDraw.remove(),1000)}
-
-            // //Trial
-            // pickedCardOwner.turnActionSuccess();
-            // const pickedCardOwnerTurnActionCount = pickedCardOwner.turnActionPerformed;
-            // if (pickedCardOwnerTurnActionCount === 1) document.body.dispatchEvent(firstActionDone);
-            // else if (pickedCardOwnerTurnActionCount >= 2) document.body.dispatchEvent(turnEnd);
-        })
-
-        cardDiv.addEventListener("actioncompleted",function actionCompleteHandler(event){
+        function actionCompleteHandler(event){ //need rework if need to accomodate >2 players
             const pickedCardOwner = event.detail;
             const triggeredByDeckDraw = document.querySelector(".drawnFromDeck");
             if (triggeredByDeckDraw){setTimeout(()=>triggeredByDeckDraw.remove(),1000)}
+            // Currently no animation, I wish for the card to stay longer there to give a visualisation of card drawn from deck. Don't want the card to disappear too fast
 
             const turnEnd = new CustomEvent("turnend",{detail:pickedCardOwner});
             const firstActionDone = new CustomEvent("firstactiondone",{detail:pickedCardOwner});
-            // Currently no animation, I wish for the card to stay longer there to give a visualisation of card drawn from deck.
-            // Don't want the card to disappear too fast
             
             pickedCardOwner.turnActionSuccess();
             const pickedCardOwnerTurnActionCount = pickedCardOwner.turnActionPerformed;
+
+            console.log("Turn ",pickedCardOwnerTurnActionCount," of ",pickedCardOwner," ended")
+
             if (pickedCardOwnerTurnActionCount === 1) document.body.dispatchEvent(firstActionDone);
             else if (pickedCardOwnerTurnActionCount >= 2) document.body.dispatchEvent(turnEnd);
-        })
+        }
+
+        function nullifyInteraction(){
+            cardDiv.removeEventListener("click",listenerToUse);
+        }
+
+        function activateInteraction(){
+            cardDiv.addEventListener("click",listenerToUse);
+        }
+
+        cardDiv.addEventListener("capturecard",captureCardHandler);
+        cardDiv.addEventListener("dealtofield",dealToFieldHandler);
+        cardDiv.addEventListener("actioncompleted",actionCompleteHandler);
+        cardDiv.addEventListener("nullify",nullifyInteraction);
+        cardDiv.addEventListener("activate",activateInteraction);
 
         //6 July.. Fail to migrate it to an event as the owner changed halfway... if inside the method, the pickedcardowner will be locked to the initial owner, which won't cause issue
         //6 July.. Success. Since the owner changed hands, create the event inside capture/dealtable handler, to lock the detail to the correct player instance 
@@ -242,12 +296,13 @@ class Card{
         const mutateObserveCallback = function(mutateRecordArr,observer){
             mutateRecordArr.forEach((mutation)=>{
                 if (mutation.target.classList.contains("picked")){
+                    console.warn("Mutation Observer Caallback")
                     document.body.dispatchEvent(pickCard);
                 }
             });
         }
         const observer = new MutationObserver(mutateObserveCallback);
-        if (this.getOwner() instanceof Player) observer.observe(cardDiv,mutateObserveOpt);
+        if (this.getOwner() instanceof Player && !(this.getOwner() instanceof CPU)) observer.observe(cardDiv,mutateObserveOpt);
 
         //Testing Area End
 
@@ -334,7 +389,7 @@ class HanafudaGameOptions{
     #kuttsuki;
     constructor(){
         this.#cardColor = "traditional";
-        this.#gameMode = "12-Turns";
+        this.#gameMode = "12-Rounds";
         this.#hanami = false;
         this.#tsukimi = false;
         this.#teshi = false;
@@ -377,7 +432,7 @@ class HanafudaGameOptions{
             /*,{
                 controlName:"gameMode",
                 legendText:"ゲームモード",
-                data:[{labelText:"12回戦",id:"twelveTurn",value:"12-Turns",defaultSelect:true},{labelText:"50まで",id:"toFifty",value:"Till-50",defaultSelect:false}]
+                data:[{labelText:"12回戦",id:"twelveRound",value:"12-Rounds",defaultSelect:true},{labelText:"50まで",id:"toFifty",value:"Till-50",defaultSelect:false}]
             }*/
         ],
         selecting:[
@@ -399,7 +454,7 @@ class HanafudaGameOptions{
         //I will preserve the dialog element creation code here....
         const allOptions = this.#AllGameOptions;
 
-        let form = document.createElement("form");
+        const form = document.createElement("form");
         form.setAttribute("id","gameOptionForm");
         form.setAttribute("name","gameOptionForm");
         form.setAttribute("method","dialog");
@@ -444,6 +499,7 @@ class HanafudaGameOptions{
         //the reset and submit button
         let resetBtn = new Image();
         resetBtn.src="assets/icon/undo_40.svg";
+        resetBtn.setAttribute("alt","Reset");
         resetBtn.setAttribute("class","buttonLike");
         resetBtn.setAttribute("id","gameOptionResetButton");
 
@@ -478,7 +534,7 @@ class HanafudaGameOptions{
     updateOptions(formDataIterable){
         //formDataIterable is an instance of FormData.
         this.#cardColor = formDataIterable.get("cardColor") ?? "traditional";
-        this.#gameMode = formDataIterable.get("gameMode") ?? "12-Turns";
+        this.#gameMode = formDataIterable.get("gameMode") ?? "12-Rounds";
         //if a checkbox not checked, get() will return null, Boolean() will make it false naturally.. but retain '?? false' for now
         this.#hanami = Boolean(formDataIterable.get("hanami")) ?? false; 
         this.#tsukimi = Boolean(formDataIterable.get("tsukimi")) ?? false;
@@ -497,29 +553,106 @@ class HanafudaGameOptions{
 
 class CardGame{
     #playerList;
-    #playerArea;
+    #playingTable;
     #totalRounds;
-    #currentTurn;
+    #currentTurnPlayer;
+    #doneTurnPlayer;
+    #maxTurnsPerRound;
     constructor(playerList,playArea,totalRounds){
         //playerList shall be an array containing at least 2 instances of Player
         //totalRounds is just an integer stating the max round of games, if omitted, default to whatever the subclass passes
         this.#playerList = playerList;
-        this.#playerArea = playArea;
+        this.#playingTable = playArea;
         this.#totalRounds = totalRounds;
-        this.#currentTurn = undefined;
+        this.#currentTurnPlayer = undefined;
+        this.#doneTurnPlayer = [];
+        this.#maxTurnsPerRound = playerList.length * 8;
     }
 
     allPlayers(){
         return this.#playerList;
     }
 
-    newRound(){
-        this.#totalRounds -= 1;
+    newTurn(){
+        this.#maxTurnsPerRound -= 1;
+        this.#doneTurnPlayer = [];
+        this.allPlayers().forEach((player)=>{
+            player.resetStatusForNextTurn();
+        });
     }
 
-    setNextPlayer(player){
-        //player is an instance of Player/CPU
-        this.#currentTurn = player;
+    newRound(){
+        this.#totalRounds -= 1;
+        this.#doneTurnPlayer = [];
+        this.#maxTurnsPerRound = this.#playerList.length  * 8;
+        this.allPlayers().forEach((player)=>{
+            player.resetStatusForNextRound();
+        });
+        this.#playingTable.clearHand();
+    }
+
+    setNextPlayer(player){//player is an instance of Player/CPU
+        this.#currentTurnPlayer = player;
+    } //[CPU Trial] phase out, incorporate into proceedNext
+
+    getActivePlayer(){
+        return this.#currentTurnPlayer;
+    }
+
+    getInactivePlayers(){
+       return this.allPlayers().filter((player)=> player !== this.#currentTurnPlayer);
+    }
+
+    recordPlayerDoneTurn(player){
+        this.#doneTurnPlayer.push(player);
+    }
+
+    checkRemainingTurns(){
+        return this.#maxTurnsPerRound;
+    }
+
+    //[CPU Trial]
+    proceedtoNextPlayer(upcomingPlayer){
+        this.#currentTurnPlayer = upcomingPlayer;
+        const inactivePlayers = this.getInactivePlayers();
+        
+        console.log("This guy turn",upcomingPlayer);
+        console.log("Inactive this turn",this.getInactivePlayers());  
+
+        const nextRound = new CustomEvent("nextround",{detail:{allPlayerIns:this.allPlayers()}});
+        //Experiment. Before is : const nextRound = new CustomEvent("nextround",{detail:this.allPlayers()}); [Search Key :001]
+        //To prevent tallyRoundResult() run twice at the end if end round by not KOIKOI-ing
+        const nullify = new CustomEvent("nullify",{detail:inactivePlayers});
+        const activate = new CustomEvent("activate",{detail:upcomingPlayer});
+        const cpuAction = new CustomEvent("cpuaction",{detail:upcomingPlayer}); //[CPU Trial]
+
+        if (this.checkRemainingTurns() <= 0){
+            document.body.dispatchEvent(nextRound);
+        }
+
+        else{
+            const activePlayerDOM = upcomingPlayer.accessElement();
+            const activePlayerCard = upcomingPlayer.displayHand();
+            activePlayerDOM.style.filter="";
+            activePlayerCard.forEach((card)=>{
+                card.associatedElm.dispatchEvent(activate);
+            })
+
+            inactivePlayers.forEach((idle)=>{
+                const inactivePlayerDOM = idle.accessElement();
+                const idlePlayerCards = idle.displayHand();
+                inactivePlayerDOM.style.filter="grayscale(50%)";
+                idlePlayerCards.forEach((card)=>{
+                    card.associatedElm.dispatchEvent(nullify);
+                });
+            })
+        }
+
+        if (upcomingPlayer instanceof CPU){ //[CPU Trial]
+            console.warn("CPU's turn. Automated action.")
+            const cpuDOM = upcomingPlayer.accessElement();
+            cpuDOM.firstElementChild.dispatchEvent(cpuAction); //the first element child is the cpu's hand
+        }
     }
 }
 
@@ -633,10 +766,13 @@ class Hanafuda extends CardGame{
     
     //note: access private, use class name , 'this' also can here, but issue when subclass call it?
 
-    currentGameOptions(){
+    get currentGameOptions(){
         return this.#gameOptions;
     }
     
+    set currentGameOptions(gameOptionsInstance){
+        this.#gameOptions = gameOptionsInstance;
+    }
     newDeck(areaInDOM){
     	let allCards = [...Hanafuda.#AllCards];
         let deck  = new CardDeck(allCards,areaInDOM);
@@ -646,54 +782,100 @@ class Hanafuda extends CardGame{
     }
 
     determineOyaKen(){
-        const players = super.allPlayers();
-        //players are instance of Player
-        //let orderInfo = {earliest:false,largest:"Not Checked"}; //legacy
+        const players = super.allPlayers(); //players are instance of Player
+        let cards = this.newDeck();
+        let havePastWinner = false;
         let orderInfo = Object.create(null, {
             earliest:{value:undefined,writable:true},
             largest:{value:undefined,writable:true}
+        });
+        //let orderInfo = {earliest:false,largest:"Not Checked"}; //legacy
+
+        players.sort((playerA,playerB)=>{
+            const winStatusA = playerA.wonPreviousRound;
+            const winStatusB = playerB.wonPreviousRound;
+            if (winStatusA || winStatusB) havePastWinner = true;
+
+            if (winStatusA) return -1;
+            else if (winStatusB) return 1;
+            else return 0;
         })
-        let cards = this.newDeck();
 
-        do{
-            orderInfo.earliest = false;
-            orderInfo.largest = "Not checked.";
+        if (!havePastWinner){
+            do{
+                orderInfo.earliest = false;
+                orderInfo.largest = "Not checked.";
 
-            players.forEach((player)=>{
-                const [drawn] = cards.draw();
-                player.getsu = drawn;
-            })
-
-            //the array containing the players will be sorted according to the getsu card they hold
-
-            players.sort((playerA,playerB)=>{
-                const monthA = Number.parseInt(playerA.getsu?.cardId?.slice(0,2));
-                const monthB = Number.parseInt(playerB.getsu?.cardId?.slice(0,2));
-                if (monthA !== monthB) orderInfo.earliest = true;
-                //legacy - from when object literal default earliest: true
-                // if (monthA === monthB) orderInfo.earliest = false; 
-                // else orderInfo.earliest = true;
-                return monthA - monthB;
-            })
-
-            if (!orderInfo.earliest){
-                players.sort((playerA,playerB)=>{
-                    const cardValueA = playerA.getsu?.cardValue;
-                    const cardValueB = playerB.getsu?.cardValue;
-                    if (cardValueA === cardValueB) orderInfo.largest = false;
-                    else orderInfo.largest = true;
-                    return cardValueB - cardValueA;
+                players.forEach((player)=>{
+                    const [drawn] = cards.draw();
+                    player.getsu = drawn;
                 })
-            }
-        }while((!orderInfo.earliest && !orderInfo.largest) && cards.remainingCardCount >= players.length);
 
-        players.forEach((player,idx)=>{
-            if (idx === 0) {
+                //the array containing the players will be sorted according to the getsu card they hold
+
+                players.sort((playerA,playerB)=>{
+                    const monthA = Number.parseInt(playerA.getsu?.cardId?.slice(0,2));
+                    const monthB = Number.parseInt(playerB.getsu?.cardId?.slice(0,2));
+                    if (monthA !== monthB) orderInfo.earliest = true;
+                    //legacy - from when object literal default earliest: true
+                    // if (monthA === monthB) orderInfo.earliest = false; 
+                    // else orderInfo.earliest = true;
+                    return monthA - monthB;
+                })
+
+                if (!orderInfo.earliest){
+                    players.sort((playerA,playerB)=>{
+                        const cardValueA = playerA.getsu?.cardValue;
+                        const cardValueB = playerB.getsu?.cardValue;
+                        if (cardValueA === cardValueB) orderInfo.largest = false;
+                        else orderInfo.largest = true;
+                        return cardValueB - cardValueA;
+                    })
+                }
+            }while((!orderInfo.earliest && !orderInfo.largest) && cards.remainingCardCount >= players.length);
+
+            // [8 July Update]
+            // Shorter... Improved(?) method. Sort both criteria in one go. Written with >2 players in mind.. Works but .largest might occassionally display werid(?) if >2 players
+            // do{
+            //     orderInfo.earliest = false;
+            //     orderInfo.largest = false;
+
+            //     players.forEach((player)=>{
+            //         const [drawn] = cards.draw();
+            //         player.getsu = drawn;
+            //     })
+
+            //     players.sort((playerA,playerB)=>{
+            //         const monthA = Number.parseInt(playerA.getsu?.cardIdMonthNo);
+            //         const monthB = Number.parseInt(playerB.getsu?.cardIdMonthNo);
+            //         const cardValueA = playerA.getsu?.cardValue;
+            //         const cardValueB = playerB.getsu?.cardValue;
+            //         if (monthA !== monthB) orderInfo.earliest = true;
+            //         if (cardValueA !== cardValueB) orderInfo.largest = true;
+
+            //         if (orderInfo.earliest) return monthA - monthB;
+            //         else return cardValueB - cardValueA;
+            //     })
+            // }while((!orderInfo.earliest && !orderInfo.largest) && cards.remainingCardCount >= players.length);
+        }
+
+        players.forEach((player,index)=>{
+            if (index === 0) {
                 player.isOya();
-                super.setNextPlayer(player);
             }
             else player.isKo();
         })
+
+        return players[0]; //return the player at first index -> oya always at first
+
+        // return players; 
+        //this will return an array of player/cpu instances, sorted in the order of descending getsu
+        //OR an array with player winning last round at first
+
+        //[NOTE] this method, despite written to be usable with >2 players,... 
+        //have no way to determine order based on winlose/cardDrawn beyond the Oya, which will be pushed to the first of returning array
+        //If needed, it should be implemented at CardGame side (maybe have a array store fixed clockwise order, then splice the order array)... 
+        //as the most important goal here is to determine Oya and set the rest to Ko... the return value is suppossedly never needed.
     }
 
     static getFlowerByMonth(month){
@@ -717,13 +899,6 @@ class Hanafuda extends CardGame{
             month = Math.min(month,11);
             return allFlowers[month];
         }   
-    }
-
-    static koikoi(){
-        const dialog = document.createElement("dialog");
-        const promptText = document.createElement("h2");
-        const yesBtn = document.createElement("button");
-        const noBtn = document.createElement("button");
     }
 
     static #getIdByCategMonth(cardCateg, ...month){
@@ -753,7 +928,7 @@ class Hanafuda extends CardGame{
     //     return idArray;
     // }
 
-    #checkGoKou(capturedHikari){
+    static #checkGoKou(capturedHikari){
         let metCriteria = 0;
         const combination = Hanafuda.#getIdByCategMonth("hikari",1,3,8,11,12);
         for (const card of capturedHikari){
@@ -762,7 +937,7 @@ class Hanafuda extends CardGame{
         return {gokou: metCriteria === 5 ? true : false};
     }
 
-    #checkShiKou(capturedHikari){
+    static #checkShiKou(capturedHikari){
         let metCriteria = 0;
         const combination = Hanafuda.#getIdByCategMonth("hikari",1,3,8,12);
         for (const card of capturedHikari){
@@ -771,7 +946,7 @@ class Hanafuda extends CardGame{
         return {shikou: metCriteria === 4 ? true : false};
     }
 
-    #checkAmeShiKou(capturedHikari){
+    static #checkAmeShiKou(capturedHikari){
         let metCriteria = 0;
         let michiKaze = false; //小野道風（おの の みちかぜ）
         const [michiKazeCard] = Hanafuda.#getIdByCategMonth("hikari",11);
@@ -783,7 +958,7 @@ class Hanafuda extends CardGame{
         return {ameshikou: michiKaze === true && metCriteria >= 3 ? true : false};
     }
 
-    #checkSanKou(capturedHikari){
+    static #checkSanKou(capturedHikari){
         let metCriteria = 0;
         const combination = Hanafuda.#getIdByCategMonth("hikari",1,3,8,12);
         for (const card of capturedHikari){
@@ -793,7 +968,7 @@ class Hanafuda extends CardGame{
         return {sankou: metCriteria === 3 ? true : false};
     }
 
-    #checkInoShikaChou(capturedTane){
+    static #checkInoShikaChou(capturedTane){
         let metCriteria = 0;
         const combination = Hanafuda.#getIdByCategMonth("tane",6,7,10);
         for (const card of capturedTane){
@@ -802,7 +977,7 @@ class Hanafuda extends CardGame{
         return {inoshikachou: metCriteria === 3 ? true : false};
     }
 
-    #checkAkaTan(capturedTanzaku){
+    static #checkAkaTan(capturedTanzaku){
         let metCriteria = 0;
         const combination = Hanafuda.#getIdByCategMonth("tanzaku",1,2,3);
         for (const card of capturedTanzaku){
@@ -811,7 +986,7 @@ class Hanafuda extends CardGame{
         return {akatan: metCriteria === 3 ? true : false};
     }
 
-    #checkAoTan(capturedTanzaku){
+    static #checkAoTan(capturedTanzaku){
         let metCriteria = 0;
         const combination = Hanafuda.#getIdByCategMonth("tanzaku",6,9,10);
         for (const card of capturedTanzaku){
@@ -820,31 +995,31 @@ class Hanafuda extends CardGame{
         return {aotan: metCriteria === 3 ? true : false};
     }
 
-    #checkTanePoint(capturedTane){
+    static #checkTanePoint(capturedTane){
         let metCriteria = 0
         for (const card of capturedTane){
             if (card instanceof Tane) metCriteria++;
         }
-        return {tane: Math.max(0, metCriteria - 10)};
+        return {tane: Math.max(0, metCriteria - 4)}; //5 == 1 pt, if 5 get 1 pt, if 4 or below no pt;
     }
 
-    #checkTanPoint(capturedTanzaku){
+    static #checkTanPoint(capturedTanzaku){
         let metCriteria = 0
         for (const card of capturedTanzaku){
             if (card instanceof Tanzaku) metCriteria++;
         }
-        return {tan: Math.max(0, metCriteria - 10)};
+        return {tan: Math.max(0, metCriteria - 4)};
     }
 
-    #checkKasuPoint(capturedKasu){
+    static #checkKasuPoint(capturedKasu){
         let metCriteria = 0
         for (const card of capturedKasu){
             if (card instanceof Kasu) metCriteria++;
         }
-        return {kasu: Math.max(0, metCriteria - 10)};
+        return {kasu: Math.max(0, metCriteria - 9)};
     }
 
-    #checkTsukimiDeIppai(capturedHikari,capturedTane){
+    static #checkTsukimiDeIppai(capturedHikari,capturedTane){
         let tsuki = false; //芒に月（つき）
         let kiku = false; //菊に盃（さかずき）
         const [tsukiCard] = Hanafuda.#getIdByCategMonth("hikari",8);
@@ -862,7 +1037,7 @@ class Hanafuda extends CardGame{
         return {tsukimideippai: tsuki && kiku ? true : false};
     }
 
-    #checkHanamiDeIppai(capturedHikari,capturedTane){
+    static #checkHanamiDeIppai(capturedHikari,capturedTane){
         let sakuraMaku = false; //桜に幕（まく）
         let kiku = false; //菊に盃（さかずき）
         const [sakuraMakuCard] = Hanafuda.#getIdByCategMonth("hikari",3);
@@ -880,9 +1055,10 @@ class Hanafuda extends CardGame{
         return {hanamideippai: sakuraMaku && kiku ? true : false};
     }
     
-    checkPlayerHandForYaku(player){
-        console.log("checking player captured cards.");
+    checkPlayerHandForYaku(player){ //aka a player's turn ended
+        console.log("Checking player's captured cards...");
         let yakuList = player.displayYaku();
+        player.archiveYaku(); //make a copy of previous result
 
         const capturedHikari = player.displayCaptured("hikari");
         const capturedTane = player.displayCaptured("tane");
@@ -890,9 +1066,11 @@ class Hanafuda extends CardGame{
         const capturedKasu = player.displayCaptured("kasu");
         const hanamiOn = window?.hanafudaOptions?.hanami ?? false;
         const tsukimiOn = window?.hanafudaOptions?.tsukimi ?? false;
+        const kuttsukiOn = window?.hanafudaOptions?.kuttsuki ?? false;
+        const teshiOn = window?.hanafudaOptions?.teshi ?? false;
 
         let highestHikariYakuFound = false;
-        const hikariCheckOrder = [this.#checkGoKou,this.#checkShiKou,this.#checkAmeShiKou,this.#checkSanKou];
+        const hikariCheckOrder = [Hanafuda.#checkGoKou,Hanafuda.#checkShiKou,Hanafuda.#checkAmeShiKou,Hanafuda.#checkSanKou];
 
         //Previously the check functions return boolean/int only, have to resort to checkFunction.name.match(/(?<=\#check)\w+/i) to build an object with said func's name...zzz
         const highestHikariGrade = hikariCheckOrder.reduce((highestRecorded,checkFunction)=>{
@@ -905,18 +1083,240 @@ class Hanafuda extends CardGame{
             return {...highestRecorded};
         },{})
 
-        const inoshikachou = this.#checkInoShikaChou(capturedTane);
-        const akatan = this.#checkAkaTan(capturedTanzaku);
-        const aotan = this.#checkAoTan(capturedTanzaku)
-        const tane = this.#checkTanePoint(capturedTane)
-        const tan = this.#checkTanPoint(capturedTanzaku)
-        const kasu = this.#checkKasuPoint(capturedKasu)
-        const hanami = hanamiOn? this.#checkHanamiDeIppai(capturedHikari,capturedTane) : false;
-        const tsukimi = tsukimiOn? this.#checkTsukimiDeIppai(capturedHikari,capturedTane) : false;
+        const inoshikachou = Hanafuda.#checkInoShikaChou(capturedTane);
+        const akatan = Hanafuda.#checkAkaTan(capturedTanzaku);
+        const aotan = Hanafuda.#checkAoTan(capturedTanzaku);
+        const tane = Hanafuda.#checkTanePoint(capturedTane);
+        const tan = Hanafuda.#checkTanPoint(capturedTanzaku);
+        const kasu = Hanafuda.#checkKasuPoint(capturedKasu);
+        const hanami = hanamiOn? Hanafuda.#checkHanamiDeIppai(capturedHikari,capturedTane) : false;
+        const tsukimi = tsukimiOn? Hanafuda.#checkTsukimiDeIppai(capturedHikari,capturedTane) : false;
 
-        Object.assign(yakuList,highestHikariGrade,inoshikachou,akatan,aotan,hanami,tsukimi,tane,tan,kasu,)
-        console.log(yakuList)
-        console.log("Player after calculation",player)
+        Object.assign(yakuList,highestHikariGrade,inoshikachou,akatan,aotan,hanami,tsukimi,tane,tan,kasu,);
+        const newYaku = player.checkYakuHistory(); //newYaku is something like ["gokou","inoshikachou"]
+        console.log("New", newYaku)
+        //if turn left is 0 don't koikoi !!! && super.checkRemainingTurns check
+        console.warn("Currently turn ",super.checkRemainingTurns())
+        if (newYaku.length > 0 && super.checkRemainingTurns() > 1){ 
+            //[UNSURE] If 2, if opponent left 1 card, no more koikoi
+            console.log("Player sent to KoiKoi",player)
+            this.#koiKoi(player); //If have yaku formed, relative to player's last turn, trigger KoiKoi confirmation
+            Hanafuda.#Yaku.notification(player); //yakuList
+            //[9 July]currently don't want another event to prompt these two sequentially.. so I just stack them on top of each other...
+        }
+        else { //no yaku found, proceed to next player, if no more player awaiting their turn, next round
+            if (super.checkRemainingTurns() <= 0){
+                const nextRound = new CustomEvent("nextround",{detail:{allPlayerIns:super.allPlayers()}});
+                //Prev: const nextRound = new CustomEvent("nextround",{detail:super.allPlayers()}); [Search Key :001]
+                document.body.dispatchEvent(nextRound);
+            }
+            else{
+                const nextPlayer = super.getInactivePlayers()[0];
+                //get the next in array among the inactive players, this will be very problematic in >2 players
+                //probably filter out playerList by making use of this.#doneTurnPlayer;
+                const nextPlayerTurn = new CustomEvent("nextplayerturn",{detail:nextPlayer});
+                document.body.dispatchEvent(nextPlayerTurn)
+            }
+        }
+    }
+
+    static #Yaku = {
+        gokou:{displayName:"五光",point:10},
+        shikou:{displayName:"四光",point:8},
+        ameshikou:{displayName:"雨四光",point:7},
+        sankou:{displayName:"三光",point:5},
+        inoshikachou:{displayName:"猪鹿蝶",point:5},
+        akatan:{displayName:"赤短",point:5},
+        aotan:{displayName:"青短",point:5},
+        hanamideippai:{displayName:"花見で一杯",point:5},
+        tsukimideippai:{displayName:"月見で一杯",point:5},
+        tane:{displayName:"タネ",point:1},
+        tan:{displayName:"タン",point:1},
+        kasu:{displayName:"カス",point:1},
+        kuttsuki:{displayName:"くっつき",point:6},
+        teshi:{displayName:"手四",point:6},
+        oyaken:{displayName:"親権",point:6},
+
+        notification(playerToNotify, pointsEarned, summaryMode = false){
+            //summaryMode is only meant for the final turn, as it will fire an event triggering next round, only used in tallyRound
+            const playerYakuList = playerToNotify.displayYaku();
+            const dialog = document.createElement("dialog");
+            const separationLine = document.createElement("hr");
+            const yesBtn = document.createElement("button");
+            
+            dialog.setAttribute("class","newYakuNotification");
+            dialog.setAttribute("lang","jp");
+
+            Object.entries(playerYakuList).forEach(([yaku,yakuValue])=>{
+                if (yakuValue){
+                    const displayText = document.createElement("p");
+                    displayText.textContent = this[yaku].displayName;
+                    if (summaryMode) displayText.setAttribute("class","fadeIn");
+                    //Pretty redundant stuff
+                    const multiplierText = typeof yakuValue === "number" ? ` ${yakuValue.toLocaleString("ja-JP-u-nu-hanidec")}` : "";
+                    if (multiplierText){
+                        const numSpan = document.createElement("span");
+                        numSpan.style.color = "red";
+                        numSpan.textContent = multiplierText;
+                        displayText.insertAdjacentElement("beforeend",numSpan);
+                    }
+                    //
+                    dialog.append(displayText);
+                }
+            });
+
+            if (summaryMode){
+                const winnerText = document.createElement("div");
+                const scoreNum = document.createElement("span");
+                const playerName = document.createElement("span");
+                winnerText.setAttribute("class","roundResultText");
+                winnerText.innerText = `勝ちます。\r\n合計点 `;
+                playerName.textContent = playerToNotify.playerName;
+                playerName.setAttribute("class","highlights");
+                scoreNum.textContent = pointsEarned;
+                scoreNum.setAttribute("class","highlights");
+                scoreNum.style.cssText = "writing-mode:horizontal-tb";
+
+                winnerText.insertAdjacentElement("afterbegin",playerName);
+                winnerText.insertAdjacentElement("beforeend",scoreNum);
+
+                dialog.setAttribute("id","roundSummaryYaku");
+                dialog.append(winnerText);
+            }
+
+            yesBtn.textContent = summaryMode ? "次へ" : "はい";
+            yesBtn.setAttribute("class","yesButton");
+            dialog.append(separationLine,yesBtn);
+
+            const closeDialog = function(event){
+                dialog.close();
+            }
+            const closeNotification = function(event){
+                dialog.remove();
+                const startNewRound = new CustomEvent("startnewround");
+                if (summaryMode) document.body.dispatchEvent(startNewRound);
+            }
+
+            yesBtn.addEventListener("click",closeDialog);
+            dialog.addEventListener("close",closeNotification);
+            document.body.insertAdjacentElement("beforeend",dialog);
+            dialog.showModal();
+        }
+    }
+
+    #calculateYaku(playerYakuList){
+        const totalPt =  Object.entries(playerYakuList).reduce((total,[yaku,yakuValue])=>{
+            let yakuPt;
+            const basePoint = Hanafuda.#Yaku[yaku].point; //this === static #Yaku{}
+            if (yakuValue){ yakuPt = typeof yakuValue === "number" ? yakuValue * basePoint : basePoint;}
+            return total + (yakuPt ?? 0);
+        },0)
+
+        return totalPt;
+    }
+
+    tallyRoundResult(koiKoiEvent=null,notKoiKoiPlayer=null){ 
+        //This is a way to safeguard(?) the passing of a non-winning player?
+        //This is an exposed method, can use in in Main.js... but you shouldn't pass any shit there as is meant for draw matches
+        //I initially separate login for winning via koikoi dialog... but better merge them..... [10 July]
+        console.warn("Tally round result...");
+        const allPlayers = super.allPlayers();
+        let highestScoreRecord = {player:null,score:0,__proto__:null};
+ 
+        if (koiKoiEvent instanceof Event && notKoiKoiPlayer){
+            highestScoreRecord.player = notKoiKoiPlayer;
+            highestScoreRecord.score = this.#calculateYaku(notKoiKoiPlayer.displayYaku());
+        }
+
+        else if (koiKoiEvent === null && notKoiKoiPlayer === null){
+            highestScoreRecord = allPlayers.reduce((hiScore,player)=>{
+                const playerYakuList = player.displayYaku();
+                const playerPoint = this.#calculateYaku(playerYakuList);
+                if (playerPoint > hiScore.score) {
+                    hiScore.player = player;
+                    hiScore.score = playerPoint;
+                }
+                return {...hiScore};
+            },highestScoreRecord);
+        }
+
+        console.log("highestScoreRecord is : ", highestScoreRecord);
+
+        if (highestScoreRecord.score === 0){ //means no one got any points (aka yaku)
+            const [oyaPlayer] = allPlayers.filter((player)=> player.oyaOrKo() === "Oya");
+            Object.assign(oyaPlayer.displayYaku(),{oyaken:true}); //we inject this special oyaken yaku into it 
+            highestScoreRecord.player = oyaPlayer;
+            highestScoreRecord.score = Hanafuda.#Yaku.oyaken.point;
+        }
+
+        const winningPlayer = highestScoreRecord.player;
+        const totalPoints = highestScoreRecord.score;
+        const losingPlayers = allPlayers.filter((player)=>player !== winningPlayer);
+
+        winningPlayer.recordRoundResult("w",totalPoints);
+        console.warn(winningPlayer.playerName," Won with point: ",totalPoints);
+        losingPlayers.forEach((lostPlayer)=>{
+            console.warn(lostPlayer.playerName, " lost");
+            lostPlayer.recordRoundResult("l",0);
+        });
+
+        Hanafuda.#Yaku.notification(winningPlayer,totalPoints,true,);
+    }
+
+    #koiKoi(player){
+        const koiKoiDialog = document.querySelector("#koiKoiDialog");
+
+        if (!koiKoiDialog){
+            const dialog = document.createElement("dialog");
+            const form = document.createElement("form");
+            const fieldset = document.createElement("fieldset");
+            const promptText = document.createElement("p");
+            const separationLine = document.createElement("hr");
+            const yesBtn = document.createElement("button");
+            const noBtn = document.createElement("button");
+    
+            dialog.setAttribute("id","koiKoiDialog");
+            dialog.setAttribute("lang","jp");
+            form.setAttribute("method","dialog");
+            form.setAttribute("name","koiKoiDialog");
+            promptText.textContent="こいこいしますか？";
+            yesBtn.setAttribute("type","submit");
+            yesBtn.setAttribute("value","yes");
+            yesBtn.setAttribute("class","yesButton");
+            yesBtn.textContent="はい";
+            noBtn.setAttribute("type","submit");
+            noBtn.setAttribute("value","no");
+            noBtn.setAttribute("class","noButton");
+            noBtn.textContent="いいえ";
+    
+            fieldset.insertAdjacentElement("afterbegin",promptText);
+            fieldset.insertAdjacentElement("beforeend",separationLine);
+            fieldset.insertAdjacentElement("beforeend",yesBtn);
+            fieldset.insertAdjacentElement("beforeend",noBtn);
+            form.insertAdjacentElement("beforeend",fieldset);
+            dialog.insertAdjacentElement("beforeend",form);
+    
+            dialog.addEventListener("close",(event)=>{
+                const inactivePlayers = super.getInactivePlayers();
+                if (!dialog.returnValue || dialog.returnValue === "yes"){
+                    console.log("KoiKoi selected. Proceed to next player!");
+                    const nextPlayer = inactivePlayers[0]; //problem with >2 players .Probably make use of this.#doneTurnPlayer + filter allPlayers()
+                    const nextPlayerTurn = new CustomEvent("nextplayerturn",{detail:nextPlayer});
+                    document.body.dispatchEvent(nextPlayerTurn);
+                }
+                else if (dialog.returnValue === "no"){
+                    console.log("Not KoiKoi. Player Wins. Go next round!");
+                    //Prev const nextRound = new CustomEvent("nextround",{detail:super.allPlayers()}); [Search Key :001]
+                    const nextRound = new CustomEvent("nextround",{detail:{allPlayerIns:super.allPlayers(),winningPlayer:super.getActivePlayer(),closeKoiKoiEvt:event}});
+                    document.body.dispatchEvent(nextRound);
+                }
+            });
+            
+            document.body.insertAdjacentElement("beforeend",dialog);
+            dialog.showModal();
+        }
+
+        else koiKoiDialog.showModal();
     }
 }
 
@@ -945,6 +1345,9 @@ class CardHoldingEntity{
         this.renderArea();
         return dealtCard;
     }
+    clearHand(){
+        this.#holding = [];
+    }
     displayHand(){
         return this.#holding;
     }
@@ -959,6 +1362,7 @@ class Field extends CardHoldingEntity{
     }
 
     renderArea(){
+        const fieldIns = this;
         const area = super.accessElement();
         const handCards = super.displayHand();
 
@@ -973,31 +1377,68 @@ class Field extends CardHoldingEntity{
         })
 
         //Event Testing Use
-        tableDiv.addEventListener("findmatch",(event)=>{
-            console.log("findMatch",performance.now(),event.detail)
+        function findMatchHandler(event){
+            console.log("findMatch",performance.now(),event.detail);
             let matchingCardCount = 0;
             const cardPickedByPlayer = event.detail; //a card instance
             const pickedCardMonth = cardPickedByPlayer?.cardIdMonthNo;
-            document.querySelectorAll(".possibleMatch").forEach((element)=>{
-                element.classList.remove("possibleMatch");
-            });
+            const ownerOfPickedCard = cardPickedByPlayer.getOwner(); //[CPU Trial]
+
+            //const allMatches = document.querySelectorAll(".possibleMatch"); //now migrated down
+            // allMatches.forEach((element)=>{
+            //     console.log("deleting"); //this never prints, meaning this block is just garbage
+            //     element.classList.remove("possibleMatch");
+            // }); //TBH, I don't recall why I need this.....
+
             handCards.forEach((handCard)=>{
                 if (pickedCardMonth === handCard.cardIdMonthNo) {
                     handCard.associatedElm.classList.add("possibleMatch");
                     matchingCardCount++;
                 }
             });
+            
+            const allMatches = document.querySelectorAll(".possibleMatch");
+            
+            //[CPU Trial] If there's match found, simulate a click on the first possible match;
+            if (matchingCardCount > 0 && ownerOfPickedCard instanceof CPU){
+                console.warn("CPU Player trying to find a match.");
+                ownerOfPickedCard.cpuPickFieldCard(allMatches);
+            }
+
             if (matchingCardCount <= 0){
                 console.log("No matchable card found.");
-                const dealCardToField = new CustomEvent("dealtofield",{detail:this});
+                const dealCardToField = new CustomEvent("dealtofield",{detail:fieldIns});
                 cardPickedByPlayer.associatedElm.dispatchEvent(dealCardToField);
             }
-        })
+        }
+        
+        // tableDiv.addEventListener("findmatch",(event)=>{
+        //     console.log("findMatch",performance.now(),event.detail)
+        //     let matchingCardCount = 0;
+        //     const cardPickedByPlayer = event.detail; //a card instance
+        //     const pickedCardMonth = cardPickedByPlayer?.cardIdMonthNo;
+        //     document.querySelectorAll(".possibleMatch").forEach((element)=>{
+        //         element.classList.remove("possibleMatch");
+        //     });
+        //     handCards.forEach((handCard)=>{
+        //         if (pickedCardMonth === handCard.cardIdMonthNo) {
+        //             handCard.associatedElm.classList.add("possibleMatch");
+        //             matchingCardCount++;
+        //         }
+        //     });
+        //     if (matchingCardCount <= 0){
+        //         console.log("No matchable card found.");
+        //         const dealCardToField = new CustomEvent("dealtofield",{detail:this});
+        //         cardPickedByPlayer.associatedElm.dispatchEvent(dealCardToField);
+        //     }
+        // })
         //Previously encountered an issue where the eventlistener is attached on an element that don't get rerendered (aka "area"), and the handler gets attached multiple times
         //Even though the function is named..... unless you move it out of this function and store in let's say a static private method as its return method
         //Now the tableDiv gets rerendered all the time, so gets destroyed and re-attached again
 
+        tableDiv.addEventListener("findmatch",findMatchHandler);
         //End of testing area
+
         area.insertAdjacentElement("beforeend",tableDiv)
     }
 }
@@ -1007,18 +1448,17 @@ class Player extends CardHoldingEntity{
     #oya;
     #getsu;
     #points;
-    #wonLast;
     #captured;
     #yaku;
     #yakuHistory;
     #turnActionPerformed;
+    #wonPreviousRound;
     constructor(areaInDOM,name="Player",initialPoints=0){
         super(areaInDOM);
         this.#name = name;
         this.#points = initialPoints;
         this.#getsu = null;
         this.#oya = false;
-        this.#wonLast = false; 
         this.#captured = {hikari:[],tane:[],tanzaku:[],kasu:[]};
         this.#yaku = {
             gokou:false,
@@ -1032,11 +1472,15 @@ class Player extends CardHoldingEntity{
             tsukimideippai:false,
             tane:0,
             tan:0,
-            kasu:0
+            kasu:0,
+            kuttsuki:false,
+            teshi:false,
+            oyaken:false
         };
         //all these yakus' name should be same as the Hanafuda class's #check methods!! Else will be in huge ass trouble.
         this.#yakuHistory = null;
         this.#turnActionPerformed = 0;
+        this.#wonPreviousRound = false; 
     }
 
     get playerName(){
@@ -1053,6 +1497,38 @@ class Player extends CardHoldingEntity{
 
     get turnActionPerformed(){
         return this.#turnActionPerformed;
+    }
+
+    get wonPreviousRound(){
+        return this.#wonPreviousRound;
+    }
+
+    resetStatusForNextTurn(){
+        this.#turnActionPerformed = 0;
+    }
+
+    resetStatusForNextRound(){
+        super.clearHand();
+        this.#turnActionPerformed = 0;
+        this.#captured = {hikari:[],tane:[],tanzaku:[],kasu:[]};
+        this.#yaku = {
+            gokou:false,
+            shikou:false,
+            ameshikou:false,
+            sankou:false,
+            inoshikachou:false,
+            akatan:false,
+            aotan:false,
+            hanamideippai:false,
+            tsukimideippai:false,
+            tane:0,
+            tan:0,
+            kasu:0,
+            kuttsuki:false,
+            teshi:false,
+            oyaken:false
+        };
+        this.#yakuHistory = null;
     }
     
     isOya(){
@@ -1071,11 +1547,12 @@ class Player extends CardHoldingEntity{
         this.#turnActionPerformed += actionPerformedCount;
     }
 
-    recordMatchResult(winLose,score){
+    recordRoundResult(winLose,score){
         //winLose should be a single letter string 'w' or 'l'
         //UNSURE score will be -ve/+ve or always +ve YET
-        this.#points += score; //depending on code later down the line, may need switch again
-        this.#wonLast = winLose.toLowerCase() === "w" ? true : false;
+        //depending on code later down the line, may need switch again
+        this.#points += winLose.toLowerCase() === "l" ? 0 : score; //is lose ("l"), ennsure no points added
+        this.#wonPreviousRound = winLose.toLowerCase() === "w" ? true : false;
     }
 
     capture(...cards){
@@ -1099,18 +1576,21 @@ class Player extends CardHoldingEntity{
         return this.#yaku;
     }
 
-    // foundYaku(yakuType, status){
-    //     //cardCateg takes a string of either sankou,tan,etc...
-    //     this.#yaku[yakuType] = status;
-    // }
-
     archiveYaku(){
         this.#yakuHistory = structuredClone(this.#yaku);
     }
 
     checkYakuHistory(){
+        const newYakuFormed = []; 
         const currentYaku = this.#yaku;
         const previousYaku = this.#yakuHistory;
+
+        for (const [yakuName,yakuValue] of Object.entries(currentYaku)){
+            let isSame = Object.is(yakuValue,previousYaku[yakuName]);
+            if (!isSame) newYakuFormed.push(yakuName);
+        }
+
+        return newYakuFormed;
     }
 
     renderArea(){
@@ -1130,7 +1610,7 @@ class Player extends CardHoldingEntity{
             const cardDiv = handCard.renderCard(option);
             handDiv.appendChild(cardDiv);
         })
-        area.appendChild(handDiv);
+        area.insertAdjacentElement("afterbegin",handDiv);
 
         capturedCards.forEach(([categ,capturedArray])=>{
             const capturedDiv = document.createElement("div")
@@ -1139,12 +1619,29 @@ class Player extends CardHoldingEntity{
                 const cardDiv = capturedCard.renderCard({faceUp:true,listenerType:"none"});
                 capturedDiv.appendChild(cardDiv);
             })
-            area.appendChild(capturedDiv);
+            area.insertAdjacentElement("beforeend",capturedDiv);
         })
+
+        area.dataset.playername = this.playerName;
+        area.dataset.points = this.#points.toLocaleString("ja-JP-u-nu-hanidec");
+
+        //[CPU Trial]
+        function cpuTakeAction(event){
+            console.log("receive 'cpuaction' event")
+            const cpuPlayer = event.detail;
+            if (cpuPlayer.turnActionPerformed === 0){
+            setTimeout(()=>{
+                cpuPlayer.cpuPickHandCard();
+            },1000)}
+        }
+        //[CPU Trial]
+        if(this instanceof CPU){
+            handDiv.addEventListener("cpuaction",cpuTakeAction);
+        }
     }
 
-    //debug , testing use
-    artificialInjectCard(){
+    //testing use
+    artificialInjectCard(yaku){
         let c1 = new Hikari("01_matsu_hikari","w");
         let c2 = new Hikari("11_yanagi_hikari","w");
         let c3 = new Hikari("12_kiri_hikari","w");
@@ -1155,10 +1652,25 @@ class Player extends CardHoldingEntity{
         let c8 = new Tane("10_momiji_tane","w");
         let c9 = new Tane("06_botan_tane","w");
 
-        this.capture(c1,c2,c3,c5,c4,c6,c7,c8,c9);
+        if (yaku === "gokou") this.capture(c1,c2,c3,c4,c5);
+        else this.capture(...yaku)
     }
 }
 
-class CPU extends Player{
+class CPU extends Player{ //[CPU Trial]
+    cpuPickHandCard(){
+        const cardsHeld = super.displayHand();
+        const toDeal = cardsHeld[0]; //always deal 1st card in hand;
+        toDeal.associatedElm.classList.toggle("picked");
+        const pickCard = new CustomEvent("pickcard",{detail:toDeal});
+        console.warn("cpu deals the following card:",toDeal);
+        document.body.dispatchEvent(pickCard);
+    }
 
+    cpuPickFieldCard(possibleMatches){
+        console.warn("cpu will match", possibleMatches);
+        setTimeout(()=>{
+            possibleMatches[0].click(); 
+        },1000)
+    }
 }
