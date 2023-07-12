@@ -388,7 +388,7 @@ class HanafudaGameOptions{
     #teshi;
     #kuttsuki;
     constructor(){
-        this.#cardColor = "traditional";
+        this.#cardColor = "alternate";
         this.#gameMode = "12-Rounds";
         this.#hanami = false;
         this.#tsukimi = false;
@@ -427,7 +427,7 @@ class HanafudaGameOptions{
             {
                 controlName:"cardColor",
                 legendText:"カード",
-                data:[{labelText:"伝統色",id:"trad",value:"traditional",defaultSelect:true},{labelText:"色違い",id:"alt",value:"alternate",defaultSelect:false}]
+                data:[{labelText:"伝統色",id:"trad",value:"traditional",defaultSelect:false},{labelText:"色違い",id:"alt",value:"alternate",defaultSelect:true}]
             }
             /*,{
                 controlName:"gameMode",
@@ -591,9 +591,70 @@ class CardGame{
         this.#playingTable.clearHand();
     }
 
-    setNextPlayer(player){//player is an instance of Player/CPU
-        this.#currentTurnPlayer = player;
-    } //[CPU Trial] phase out, incorporate into proceedNext
+    summariseGame(){
+        const allPlayers = this.#playerList;
+        let otherPlayersWithSameHighestPoint = 0;
+        const mostPointsPlayer = allPlayers.reduce((mostPt,player)=>{
+            const finalPoints = player.getCurrentPoints();
+            if (finalPoints > mostPt.point) {
+                mostPt.winner = player;
+                mostPt.point = finalPoints;
+                otherPlayersWithSameHighestPoint = 0;
+            }
+            else if (finalPoints === mostPt.point) {
+                otherPlayersWithSameHighestPoint++;
+            }
+            return {...mostPt};
+        },{winner:null,point:0,__proto__:null});
+
+        const gameResult = otherPlayersWithSameHighestPoint > 0 ? {winner:"Draw",point:NaN,__proto__:null} : mostPointsPlayer;
+
+        // if (otherPlayersWithSameHighestPoint > 0)return "Draw"; //( || !mostPointsPlayer.winner)
+        // else return mostPointsPlayer;
+
+        const dialog = document.createElement("dialog");
+        const resultText = document.createElement("p");
+        const separationLine = document.createElement("hr");
+        const endBtn = document.createElement("button");
+        
+        resultText.textContent = otherPlayersWithSameHighestPoint > 0 ? "引き分け" : `${mostPointsPlayer.winner.playerName} 勝ちます！`;
+        endBtn.textContent = "おしまい";
+        endBtn.setAttribute("class","endButton")
+        dialog.setAttribute("id","gameSummaryDialog");
+        dialog.setAttribute("lang","jp");
+        dialog.insertAdjacentElement("afterbegin",resultText);
+        
+        allPlayers.forEach((player)=>{
+            const resultPlaque = document.createElement("div");
+            const nameDisplay = document.createElement("p");
+            const pointDisplay = document.createElement("p");
+            nameDisplay.textContent = player.playerName;
+            pointDisplay.textContent = `合計点  ${player.getCurrentPoints().toLocaleString("ja-JP-u-nu-hanidec")}`;
+            resultPlaque.setAttribute("class","finalPoint");
+            if (otherPlayersWithSameHighestPoint === 0 && player === mostPointsPlayer.winner){
+                resultPlaque.classList.add("winner");
+            }
+            resultPlaque.append(nameDisplay,pointDisplay);
+            dialog.append(resultPlaque);
+        });
+
+        dialog.append(separationLine,endBtn);
+
+        const closeDialog = function(event){
+            dialog.close();
+        }
+
+        const closeResult = function(event){
+            dialog.remove();
+            const gameEnd = new CustomEvent("gameend",{detail:gameResult});
+            document.body.dispatchEvent(gameEnd);
+        }
+
+        endBtn.addEventListener("click",closeDialog);
+        dialog.addEventListener("close",closeResult);
+        document.body.insertAdjacentElement("beforeend",dialog);
+        dialog.showModal();
+    }
 
     getActivePlayer(){
         return this.#currentTurnPlayer;
@@ -610,14 +671,20 @@ class CardGame{
     checkRemainingTurns(){
         return this.#maxTurnsPerRound;
     }
+    
+    checkRemainingRounds(){
+        return this.#totalRounds;
+    }
 
     //[CPU Trial]
     proceedtoNextPlayer(upcomingPlayer){
-        this.#currentTurnPlayer = upcomingPlayer;
+        this.#currentTurnPlayer = upcomingPlayer; //replaced old setNextPlayer()
         const inactivePlayers = this.getInactivePlayers();
         
         console.log("This guy turn",upcomingPlayer);
-        console.log("Inactive this turn",this.getInactivePlayers());  
+        console.log("Inactive this turn",this.getInactivePlayers());
+
+        if (document.body.hasAttribute("inert")) document.body.toggleAttribute("inert");
 
         const nextRound = new CustomEvent("nextround",{detail:{allPlayerIns:this.allPlayers()}});
         //Experiment. Before is : const nextRound = new CustomEvent("nextround",{detail:this.allPlayers()}); [Search Key :001]
@@ -627,6 +694,7 @@ class CardGame{
         const cpuAction = new CustomEvent("cpuaction",{detail:upcomingPlayer}); //[CPU Trial]
 
         if (this.checkRemainingTurns() <= 0){
+            console.log("No More Turn. Next Round.")
             document.body.dispatchEvent(nextRound);
         }
 
@@ -646,12 +714,12 @@ class CardGame{
                     card.associatedElm.dispatchEvent(nullify);
                 });
             })
-        }
-
-        if (upcomingPlayer instanceof CPU){ //[CPU Trial]
-            console.warn("CPU's turn. Automated action.")
-            const cpuDOM = upcomingPlayer.accessElement();
-            cpuDOM.firstElementChild.dispatchEvent(cpuAction); //the first element child is the cpu's hand
+            
+            if (upcomingPlayer instanceof CPU){ //[CPU Trial]
+                console.warn("CPU's turn. Automated action.")
+                const cpuDOM = upcomingPlayer.accessElement();
+                cpuDOM.firstElementChild.dispatchEvent(cpuAction); //the first element child is the cpu's hand
+            }
         }
     }
 }
@@ -1151,8 +1219,8 @@ class Hanafuda extends CardGame{
                 if (yakuValue){
                     const displayText = document.createElement("p");
                     displayText.textContent = this[yaku].displayName;
-                    if (summaryMode) displayText.setAttribute("class","fadeIn");
                     //Pretty redundant stuff
+                    //if (summaryMode) displayText.setAttribute("class","fadeIn");
                     const multiplierText = typeof yakuValue === "number" ? ` ${yakuValue.toLocaleString("ja-JP-u-nu-hanidec")}` : "";
                     if (multiplierText){
                         const numSpan = document.createElement("span");
@@ -1167,18 +1235,18 @@ class Hanafuda extends CardGame{
 
             if (summaryMode){
                 const winnerText = document.createElement("div");
-                const scoreNum = document.createElement("span");
+                const pointDisplay = document.createElement("span");
                 const playerName = document.createElement("span");
                 winnerText.setAttribute("class","roundResultText");
-                winnerText.innerText = `勝ちます。\r\n合計点 `;
+                winnerText.innerText = `勝ちます。\r\n得点 `;
                 playerName.textContent = playerToNotify.playerName;
                 playerName.setAttribute("class","highlights");
-                scoreNum.textContent = pointsEarned;
-                scoreNum.setAttribute("class","highlights");
-                scoreNum.style.cssText = "writing-mode:horizontal-tb";
+                pointDisplay.textContent = pointsEarned;
+                pointDisplay.setAttribute("class","highlights");
+                pointDisplay.style.cssText = "writing-mode:horizontal-tb";
 
                 winnerText.insertAdjacentElement("afterbegin",playerName);
-                winnerText.insertAdjacentElement("beforeend",scoreNum);
+                winnerText.insertAdjacentElement("beforeend",pointDisplay);
 
                 dialog.setAttribute("id","roundSummaryYaku");
                 dialog.append(winnerText);
@@ -1193,7 +1261,7 @@ class Hanafuda extends CardGame{
             }
             const closeNotification = function(event){
                 dialog.remove();
-                const startNewRound = new CustomEvent("startnewround");
+                const startNewRound = new CustomEvent("startnewround",{detail:this});
                 if (summaryMode) document.body.dispatchEvent(startNewRound);
             }
 
@@ -1221,46 +1289,53 @@ class Hanafuda extends CardGame{
         //I initially separate login for winning via koikoi dialog... but better merge them..... [10 July]
         console.warn("Tally round result...");
         const allPlayers = super.allPlayers();
-        let highestScoreRecord = {player:null,score:0,__proto__:null};
- 
+        let roundHighestPoint = {player:null,point:0,__proto__:null};
+        let otherPlayersWithSameHighestPoint = 0; //meaning additional player with first recorded highest point
+
         if (koiKoiEvent instanceof Event && notKoiKoiPlayer){
-            highestScoreRecord.player = notKoiKoiPlayer;
-            highestScoreRecord.score = this.#calculateYaku(notKoiKoiPlayer.displayYaku());
-        }
+            roundHighestPoint.player = notKoiKoiPlayer;
+            roundHighestPoint.point = this.#calculateYaku(notKoiKoiPlayer.displayYaku());
+        } //means triggered by not koikoi when prompted
 
         else if (koiKoiEvent === null && notKoiKoiPlayer === null){
-            highestScoreRecord = allPlayers.reduce((hiScore,player)=>{
+            roundHighestPoint = allPlayers.reduce((hiPoint,player)=>{
                 const playerYakuList = player.displayYaku();
                 const playerPoint = this.#calculateYaku(playerYakuList);
-                if (playerPoint > hiScore.score) {
-                    hiScore.player = player;
-                    hiScore.score = playerPoint;
+                if (playerPoint > hiPoint.point) {
+                    hiPoint.player = player;
+                    hiPoint.point = playerPoint;
+                    otherPlayersWithSameHighestPoint = 0;
                 }
-                return {...hiScore};
-            },highestScoreRecord);
-        }
+                else if(playerPoint === hiPoint.point) {
+                    otherPlayersWithSameHighestPoint++;
+                }
+                return {...hiPoint};
+            },roundHighestPoint);
+        }//means a normal round tally with when num of turns per round ran out
 
-        console.log("highestScoreRecord is : ", highestScoreRecord);
+        console.log("roundHighestPoint is : ", roundHighestPoint);
+        console.log("otherPlayersWithSameHighestPoint ",otherPlayersWithSameHighestPoint)
 
-        if (highestScoreRecord.score === 0){ //means no one got any points (aka yaku)
+        if (otherPlayersWithSameHighestPoint > 0 || !roundHighestPoint.player){ 
+            //no one got any points (aka yaku) or more than 1 player have same point
             const [oyaPlayer] = allPlayers.filter((player)=> player.oyaOrKo() === "Oya");
             Object.assign(oyaPlayer.displayYaku(),{oyaken:true}); //we inject this special oyaken yaku into it 
-            highestScoreRecord.player = oyaPlayer;
-            highestScoreRecord.score = Hanafuda.#Yaku.oyaken.point;
+            roundHighestPoint.player = oyaPlayer;
+            roundHighestPoint.point = Hanafuda.#Yaku.oyaken.point;
         }
 
-        const winningPlayer = highestScoreRecord.player;
-        const totalPoints = highestScoreRecord.score;
+        const winningPlayer = roundHighestPoint.player;
+        const totalPoints = roundHighestPoint.point;
         const losingPlayers = allPlayers.filter((player)=>player !== winningPlayer);
 
         winningPlayer.recordRoundResult("w",totalPoints);
-        console.warn(winningPlayer.playerName," Won with point: ",totalPoints);
+        console.warn(winningPlayer.playerName," won this round with point: ",totalPoints);
         losingPlayers.forEach((lostPlayer)=>{
             console.warn(lostPlayer.playerName, " lost");
             lostPlayer.recordRoundResult("l",0);
         });
 
-        Hanafuda.#Yaku.notification(winningPlayer,totalPoints,true,);
+        Hanafuda.#Yaku.notification(winningPlayer,totalPoints,true);
     }
 
     #koiKoi(player){
@@ -1308,7 +1383,9 @@ class Hanafuda extends CardGame{
                     console.log("Not KoiKoi. Player Wins. Go next round!");
                     //Prev const nextRound = new CustomEvent("nextround",{detail:super.allPlayers()}); [Search Key :001]
                     const nextRound = new CustomEvent("nextround",{detail:{allPlayerIns:super.allPlayers(),winningPlayer:super.getActivePlayer(),closeKoiKoiEvt:event}});
-                    document.body.dispatchEvent(nextRound);
+                    //prev pass player, but it always stuck at first player enter koi koi due to the newer design where this dialog is no longer rerendered....
+                    //now the argument/para is useless
+                    document.body.dispatchEvent(nextRound); 
                 }
             });
             
@@ -1503,6 +1580,10 @@ class Player extends CardHoldingEntity{
         return this.#wonPreviousRound;
     }
 
+    getCurrentPoints(){
+        return this.#points;
+    }
+
     resetStatusForNextTurn(){
         this.#turnActionPerformed = 0;
     }
@@ -1628,6 +1709,7 @@ class Player extends CardHoldingEntity{
         //[CPU Trial]
         function cpuTakeAction(event){
             console.log("receive 'cpuaction' event")
+            document.body.toggleAttribute("inert");
             const cpuPlayer = event.detail;
             if (cpuPlayer.turnActionPerformed === 0){
             setTimeout(()=>{

@@ -32,6 +32,9 @@ html{
     .noButton:hover{
         text-shadow: #F2003C 4px 3px 5px;
     }
+    .endButton:hover{
+        text-shadow: #83adbb 4px 3px 5px;
+    }
     
 }
 /* ::-webkit-scrollbar {
@@ -170,14 +173,14 @@ body{
     color:#CC5500
 }
 
-:is(.yesButton,.noButton){
+:is(.yesButton,.noButton,.endButton){
     background-color: #FCD7DD00;
     margin-inline-end: 1.5rem;
     border:none;
     font-size: 1em;
     font-family: inherit;
 }
-:is(.yesButton,.noButton):active{
+:is(.yesButton,.noButton,.endButton):active{
     font-weight: bold;
 }
 .yesButton{
@@ -256,9 +259,9 @@ main > .areaField{
 main > .areaHand{
     container-name: cardsize;
     container-type: size;
-    padding: 1rem 1rem 0 2rem; /*Left added 0.8rem To fit the areaHand ::before*/
+    padding: 1rem .5rem 0 2rem; /*Left added 0.8rem To fit the areaHand ::before*, right -0.5 to give more space*/
     background-color:#77ba7d;
-    /* background-color:#b9e6b5; */
+    /* background-image: linear-gradient(to right,#1d3a31,#2f522e,#587544,#cdc082); */
     display: flex;
     flex-flow: row wrap;
     justify-content: flex-start;
@@ -290,7 +293,24 @@ main > .areaHand{
     align-content: flex-start;
     align-items: center;
     column-gap: .5rem;
+    position: relative;
+    margin-right:.8rem;
+    min-height: 2.5rem;
+    /* this prevented the element form collapsing totally when no more hand cards, which will cause ::after to display wiredly */
 }
+
+.hand::after{
+    width:max-content;
+    position:absolute;
+    top:0%;
+    left: 100%;
+    background-image: linear-gradient(to bottom,#d5a067,#d5b07f,#decba2);
+    content: '手札';
+    font-size:.85rem;
+    font-family: "New Tegomin", serif;
+    writing-mode: vertical-rl;
+    padding-inline: 5px;
+} 
 
 .captured{
     display: grid;
@@ -473,3 +493,61 @@ main > .areaHand{
     from{opacity:0;}
     to{opacity:1;}
 }
+
+.finalPoint{
+    border: 2px solid #2d3d54;
+    background-image: linear-gradient(to bottom,#4d6780,#a6b191);
+    margin-block: 1rem;
+    margin-inline: 0;
+    position:relative;
+}
+
+.finalPoint.winner{
+    border: 2px solid #842e15;
+    background-image: linear-gradient(to bottom,#ca887a,#d7bca1);
+}
+
+.finalPoint > p{
+    margin-block: 0;
+    padding-inline-start: 5px;
+
+}
+
+.finalPoint.winner::before{
+    z-index:2;
+    position: absolute;
+    bottom: 0%;
+    right: 0%;
+    transform: translate(50%, 50%);
+    padding-inline: 5px;
+    content: "勝";
+    background-color:#d8b07b;
+    border: 1px solid #cc8140;
+}
+
+#gameSummaryDialog{
+    font-size: clamp(14px,1rem,20px);
+    border-color: #23354e;
+    background-color: #e4d7b4;
+    background-image:  radial-gradient(farthest-side at top right,#d4a670,#dac89e);
+}
+#gameSummaryDialog > p{
+    font-size: 1.1rem;
+    color:#0e1d33;
+    margin-block-start: 0;
+}
+
+#gameSummaryDialog > .endButton{
+    color:#0e1d33;
+    font-size: 1.2rem;
+    /* font-family: inherit;
+    border: 2px solid #23354e;
+    background-color: #ddca9f;
+    padding-inline: 0.5rem; */
+}
+
+#gameSummaryDialog::backdrop{
+    background-color: #e1a3833d;
+    backdrop-filter:blur(5px);
+}
+

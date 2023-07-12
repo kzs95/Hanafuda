@@ -19,7 +19,7 @@ let gameAreaField = document.querySelector("#handField");
 //They both don't exists yet!
 
 //Home Page Events
-startButton.addEventListener("click", gameInitialization)
+startButton.addEventListener("click", gameInitialization);
 
 optionButton.addEventListener("click",()=>{
     if(!document.querySelector("#gameOptionForm")){
@@ -33,7 +33,7 @@ optionButton.addEventListener("click",()=>{
 const player = new Player(gameAreaPlayer,"プレイヤー");
 const cpu = new CPU(gameAreaCPU,"CPU");
 const table = new Field(gameAreaField);
-const hanafudaGame = new Hanafuda(window.hanafudaOptions ?? new HanafudaGameOptions(),[player,cpu],table);
+const hanafudaGame = new Hanafuda(window.hanafudaOptions ?? new HanafudaGameOptions(),[player,cpu],table,1);
 
 //In Game Events Testing Ground
 document.body.addEventListener("pickcard",(event)=>{
@@ -74,17 +74,33 @@ document.body.addEventListener("nextplayerturn",(event)=>{
 
 document.body.addEventListener("nextround",(event)=>{
     console.warn("Proceed to next round!");
-    console.error("Before Next Round Detail",event.detail);
+    console.warn("Before Next Round Detail",event.detail);
     //will have access to all players + a special flag
-    //until I decide to incorporate a flag to indicate game end via not koikoi-ing, event.detail aka array contaning all players ins is never used [Search Key :001]
+    //until I decide to incorporate a flag to indicate game end via not koikoi-ing, event.detail only have array contaning all players ins is never used [Search Key :001]
+    //now still the same... just that this event fired from koikoi dialog will have 2 additional keys as shown
+    //all players can still be accessed via detail.allPlayerIns, not that I need it
     const koiKoiEvt = event.detail?.closeKoiKoiEvt ?? null;
     const notkoiKoiPlayer = event.detail?.winningPlayer ?? null;
     hanafudaGame.tallyRoundResult(koiKoiEvt,notkoiKoiPlayer);
 })
 
+//Only fired from static #Yaku.notification()!
+//If no more rounds, summariseGame will fire an gameend event
 document.body.addEventListener("startnewround",(event)=>{
     hanafudaGame.newRound(); //now newRound() does all the resetting... no need .resetStatusForNextRound() on each player ins
-    hanafudaGameNewRound();
+    //event.detail contains game instance, which is not really necessary to use, aka same as hanafudaGame
+    if (hanafudaGame.checkRemainingRounds() <= 0){
+        hanafudaGame.summariseGame();
+    }
+    else{
+        hanafudaGameNewRound();
+    }
+})
+
+document.body.addEventListener("gameend",(event)=>{
+    console.log("End of Game", event.detail);
+    if (!document.body.hasAttribute("inert")) document.body.toggleAttribute("inert");
+    endHanafudaGame();
 })
 
 //End of testing area
@@ -93,7 +109,7 @@ function gameInitialization(event){
     let clickTime;
     const bodyClassList = document.body.classList;
     
-    event.target.parentNode.setAttribute("inert",""); //disable further interaction with menu
+    event.target.parentNode.toggleAttribute("inert"); //disable further interaction with menu
 
     requestAnimationFrame(function darker(timestamp){
         let animationRequest;
@@ -140,4 +156,25 @@ function hanafudaGameNewRound(){
     table.renderArea();
 
     hanafudaGame.proceedtoNextPlayer(oyaPlayer);
+}
+
+function endHanafudaGame(){
+    //I plan to have diff animation... but that's low priority;
+    let startTime;
+    const bodyClassList = document.body.classList;
+
+    requestAnimationFrame(function darker(timestamp){
+        let animationRequest;
+        startTime ??= timestamp;
+        let elapsed = timestamp - startTime;
+        if (!bodyClassList.contains("shiftBlack")) bodyClassList.add("shiftBlack");
+        let currentBrightness = window.getComputedStyle(document.body).getPropertyValue("filter").match(/(?<=\()\d\.*\d*/);
+        if (elapsed < 1500){
+            if(currentBrightness>0) animationRequest = requestAnimationFrame(darker);
+        }
+        if (currentBrightness < 0.1) {
+            location.reload();
+        };
+    })
+    
 }
