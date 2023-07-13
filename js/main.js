@@ -33,7 +33,7 @@ optionButton.addEventListener("click",()=>{
 const player = new Player(gameAreaPlayer,"プレイヤー");
 const cpu = new CPU(gameAreaCPU,"CPU");
 const table = new Field(gameAreaField);
-const hanafudaGame = new Hanafuda(window.hanafudaOptions ?? new HanafudaGameOptions(),[player,cpu],table,1);
+const hanafudaGame = new Hanafuda(window.hanafudaOptions ?? new HanafudaGameOptions(),[player,cpu],table,2);
 
 //In Game Events Testing Ground
 document.body.addEventListener("pickcard",(event)=>{
@@ -72,11 +72,17 @@ document.body.addEventListener("nextplayerturn",(event)=>{
     hanafudaGame.proceedtoNextPlayer(upcomingPlayer);
 })
 
+document.body.addEventListener("koikoi",(event)=>{
+    console.warn("Player KoiKoi-ing",event.detail);
+    const playerWithYaku = event.detail;
+    hanafudaGame.koiKoi(playerWithYaku);
+})
+
 document.body.addEventListener("nextround",(event)=>{
     console.warn("Proceed to next round!");
     console.warn("Before Next Round Detail",event.detail);
     //will have access to all players + a special flag
-    //until I decide to incorporate a flag to indicate game end via not koikoi-ing, event.detail only have array contaning all players ins is never used [Search Key :001]
+    //until I decide to incorporate a flag to indicate game end via not koikoi-ing, event.detail only have array contaning all players ins is never used
     //now still the same... just that this event fired from koikoi dialog will have 2 additional keys as shown
     //all players can still be accessed via detail.allPlayerIns, not that I need it
     const koiKoiEvt = event.detail?.closeKoiKoiEvt ?? null;
@@ -126,7 +132,9 @@ function gameInitialization(event){
             cancelAnimationFrame(animationRequest);
         };
     })
-    hanafudaGameNewRound();
+    setTimeout(()=>{
+        hanafudaGameNewRound();
+    },1600);
 }
 
 function hanafudaGameNewRound(){

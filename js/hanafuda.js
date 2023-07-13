@@ -72,13 +72,13 @@ class Card{
     #width;
     #height;
     #owner;
-    #associatedElm;
+    #associatedElement;
     constructor(id,cardName,width,height){
         this.#id = id;
         this.#cardName = cardName;
         this.#width = width;
         this.#height = height;
-        this.#associatedElm = undefined;
+        this.#associatedElement = undefined;
         this.#owner = "Deck";
     }
 
@@ -98,12 +98,12 @@ class Card{
         return this.#width / this.#height;
     }
 
-    get associatedElm(){
-        return this.#associatedElm;
+    get associatedElement(){
+        return this.#associatedElement;
     }
 
     linktoDOM(element){
-        this.#associatedElm = element;
+        this.#associatedElement = element;
     }
 
     updateOwner(entity){
@@ -184,51 +184,6 @@ class Card{
 
         if (listenerType !== "none") cardDiv.addEventListener("click",listenerToUse);
 
-        //Testing Events
-        // cardDiv.addEventListener("capturecard",(event)=>{
-        //     // console.log("Picked : ",this);
-        //     // console.log("Capture Field : ",event.detail);
-        //     const fieldCardToCapture = event.detail; //contain instance if Card (located at Field)
-        //     const pickedCard = this;
-        //     const pickedCardOwner = pickedCard.getOwner();
-        //     pickedCardOwner?.giveAwayCard(this);
-        //     fieldCardToCapture.getOwner()?.giveAwayCard(fieldCardToCapture);
-        //     pickedCardOwner.capture(pickedCard,fieldCardToCapture);
-
-        //     const actionComplete = new CustomEvent("actioncompleted",{detail:pickedCardOwner});
-        //     pickedCard.associatedElm.dispatchEvent(actionComplete);
-
-        //     // const triggeredByDeckDraw = document.querySelector(".drawnFromDeck");
-        //     // if (triggeredByDeckDraw){setTimeout(()=>triggeredByDeckDraw.remove(),1000)}
-
-        //     // //Trial
-        //     // const turnEnd = new CustomEvent("turnend",{detail:pickedCardOwner});
-        //     // pickedCardOwner.turnActionSuccess();
-        //     // const pickedCardOwnerTurnActionCount = pickedCardOwner.turnActionPerformed;
-        //     // if (pickedCardOwnerTurnActionCount === 1) document.body.dispatchEvent(firstActionDone);
-        //     // else if (pickedCardOwnerTurnActionCount >= 2) document.body.dispatchEvent(turnEnd);
-        // })
-
-        // cardDiv.addEventListener("dealtofield",(event)=>{
-        //     const fieldInstance = event.detail; //contain instance of Field
-        //     const pickedCard = this;
-        //     const pickedCardOwner = pickedCard.getOwner();
-        //     const dealtCard = pickedCardOwner?.giveAwayCard(pickedCard);
-        //     fieldInstance.receive(dealtCard);
-
-        //     const actionComplete = new CustomEvent("actioncompleted",{detail:pickedCardOwner});
-        //     pickedCard.associatedElm.dispatchEvent(actionComplete);
-
-        //     // const triggeredByDeckDraw = document.querySelector(".drawnFromDeck");
-        //     // if (triggeredByDeckDraw){setTimeout(()=>triggeredByDeckDraw.remove(),1000)}
-
-        //     // //Trial
-        //     // pickedCardOwner.turnActionSuccess();
-        //     // const pickedCardOwnerTurnActionCount = pickedCardOwner.turnActionPerformed;
-        //     // if (pickedCardOwnerTurnActionCount === 1) document.body.dispatchEvent(firstActionDone);
-        //     // else if (pickedCardOwnerTurnActionCount >= 2) document.body.dispatchEvent(turnEnd);
-        // })
-
         const cardIns = this;
 
         function captureCardHandler(event){
@@ -240,7 +195,7 @@ class Card{
             pickedCardOwner.capture(pickedCard,fieldCardToCapture);
 
             const actionComplete = new CustomEvent("actioncompleted",{detail:pickedCardOwner});
-            pickedCard.associatedElm.dispatchEvent(actionComplete);
+            pickedCard.associatedElement.dispatchEvent(actionComplete);
         }
 
         function dealToFieldHandler(event){
@@ -253,7 +208,7 @@ class Card{
             console.log(pickedCardOwner,"dealt the following Card:",pickedCard)
 
             const actionComplete = new CustomEvent("actioncompleted",{detail:pickedCardOwner});
-            pickedCard.associatedElm.dispatchEvent(actionComplete);
+            pickedCard.associatedElement.dispatchEvent(actionComplete);
         }
 
         function actionCompleteHandler(event){ //need rework if need to accomodate >2 players
@@ -687,8 +642,6 @@ class CardGame{
         if (document.body.hasAttribute("inert")) document.body.toggleAttribute("inert");
 
         const nextRound = new CustomEvent("nextround",{detail:{allPlayerIns:this.allPlayers()}});
-        //Experiment. Before is : const nextRound = new CustomEvent("nextround",{detail:this.allPlayers()}); [Search Key :001]
-        //To prevent tallyRoundResult() run twice at the end if end round by not KOIKOI-ing
         const nullify = new CustomEvent("nullify",{detail:inactivePlayers});
         const activate = new CustomEvent("activate",{detail:upcomingPlayer});
         const cpuAction = new CustomEvent("cpuaction",{detail:upcomingPlayer}); //[CPU Trial]
@@ -703,7 +656,7 @@ class CardGame{
             const activePlayerCard = upcomingPlayer.displayHand();
             activePlayerDOM.style.filter="";
             activePlayerCard.forEach((card)=>{
-                card.associatedElm.dispatchEvent(activate);
+                card.associatedElement.dispatchEvent(activate);
             })
 
             inactivePlayers.forEach((idle)=>{
@@ -711,14 +664,13 @@ class CardGame{
                 const idlePlayerCards = idle.displayHand();
                 inactivePlayerDOM.style.filter="grayscale(50%)";
                 idlePlayerCards.forEach((card)=>{
-                    card.associatedElm.dispatchEvent(nullify);
+                    card.associatedElement.dispatchEvent(nullify);
                 });
             })
             
             if (upcomingPlayer instanceof CPU){ //[CPU Trial]
                 console.warn("CPU's turn. Automated action.")
-                const cpuDOM = upcomingPlayer.accessElement();
-                cpuDOM.firstElementChild.dispatchEvent(cpuAction); //the first element child is the cpu's hand
+                upcomingPlayer.accessElement().firstElementChild.dispatchEvent(cpuAction); //the first element child is the cpu's hand
             }
         }
     }
@@ -1165,17 +1117,12 @@ class Hanafuda extends CardGame{
         console.log("New", newYaku)
         //if turn left is 0 don't koikoi !!! && super.checkRemainingTurns check
         console.warn("Currently turn ",super.checkRemainingTurns())
-        if (newYaku.length > 0 && super.checkRemainingTurns() > 1){ 
-            //[UNSURE] If 2, if opponent left 1 card, no more koikoi
-            console.log("Player sent to KoiKoi",player)
-            this.#koiKoi(player); //If have yaku formed, relative to player's last turn, trigger KoiKoi confirmation
-            Hanafuda.#Yaku.notification(player); //yakuList
-            //[9 July]currently don't want another event to prompt these two sequentially.. so I just stack them on top of each other...
+        if (newYaku.length > 0 && super.checkRemainingTurns() > 1){ //[UNSURE] If 2, if opponent left 1 card, no more koikoi
+            Hanafuda.#Yaku.notification(player,"koikoi");
         }
         else { //no yaku found, proceed to next player, if no more player awaiting their turn, next round
             if (super.checkRemainingTurns() <= 0){
                 const nextRound = new CustomEvent("nextround",{detail:{allPlayerIns:super.allPlayers()}});
-                //Prev: const nextRound = new CustomEvent("nextround",{detail:super.allPlayers()}); [Search Key :001]
                 document.body.dispatchEvent(nextRound);
             }
             else{
@@ -1205,13 +1152,14 @@ class Hanafuda extends CardGame{
         teshi:{displayName:"手四",point:6},
         oyaken:{displayName:"親権",point:6},
 
-        notification(playerToNotify, pointsEarned, summaryMode = false){
-            //summaryMode is only meant for the final turn, as it will fire an event triggering next round, only used in tallyRound
+        notification(playerToNotify, followUp, pointsEarned){
+            //playerToNotify is instance of Player
+            //followUp = "tallyround" is for final turn, fire an event triggering next round. "koikoi" fire an event to trigger koikoi prompt
             const playerYakuList = playerToNotify.displayYaku();
             const dialog = document.createElement("dialog");
+            
             const separationLine = document.createElement("hr");
             const yesBtn = document.createElement("button");
-            
             dialog.setAttribute("class","newYakuNotification");
             dialog.setAttribute("lang","jp");
 
@@ -1220,7 +1168,6 @@ class Hanafuda extends CardGame{
                     const displayText = document.createElement("p");
                     displayText.textContent = this[yaku].displayName;
                     //Pretty redundant stuff
-                    //if (summaryMode) displayText.setAttribute("class","fadeIn");
                     const multiplierText = typeof yakuValue === "number" ? ` ${yakuValue.toLocaleString("ja-JP-u-nu-hanidec")}` : "";
                     if (multiplierText){
                         const numSpan = document.createElement("span");
@@ -1233,12 +1180,19 @@ class Hanafuda extends CardGame{
                 }
             });
 
-            if (summaryMode){
+            if (followUp === "koikoi"){
+                const title = document.createElement("p");
+                title.innerText = `${playerToNotify.playerName}\r\n出来役`;
+                title.style.cssText = "color:#173d75;margin-block-start:0;"
+                dialog.insertAdjacentElement("afterbegin",title);
+            }
+
+            if (followUp === "tallyround"){
                 const winnerText = document.createElement("div");
                 const pointDisplay = document.createElement("span");
                 const playerName = document.createElement("span");
                 winnerText.setAttribute("class","roundResultText");
-                winnerText.innerText = `勝ちます。\r\n得点 `;
+                winnerText.innerText = ` 勝ちます。\r\n得点 `;
                 playerName.textContent = playerToNotify.playerName;
                 playerName.setAttribute("class","highlights");
                 pointDisplay.textContent = pointsEarned;
@@ -1252,7 +1206,7 @@ class Hanafuda extends CardGame{
                 dialog.append(winnerText);
             }
 
-            yesBtn.textContent = summaryMode ? "次へ" : "はい";
+            yesBtn.textContent = followUp === "tallyround" ? "次へ" : "はい";
             yesBtn.setAttribute("class","yesButton");
             dialog.append(separationLine,yesBtn);
 
@@ -1261,8 +1215,10 @@ class Hanafuda extends CardGame{
             }
             const closeNotification = function(event){
                 dialog.remove();
+                const koiKoi = new CustomEvent("koikoi",{detail:playerToNotify});
                 const startNewRound = new CustomEvent("startnewround",{detail:this});
-                if (summaryMode) document.body.dispatchEvent(startNewRound);
+                if (followUp === "tallyround") document.body.dispatchEvent(startNewRound);
+                else if (followUp === "koikoi") document.body.dispatchEvent(koiKoi);
             }
 
             yesBtn.addEventListener("click",closeDialog);
@@ -1292,10 +1248,10 @@ class Hanafuda extends CardGame{
         let roundHighestPoint = {player:null,point:0,__proto__:null};
         let otherPlayersWithSameHighestPoint = 0; //meaning additional player with first recorded highest point
 
-        if (koiKoiEvent instanceof Event && notKoiKoiPlayer){
+        if (koiKoiEvent?.type==="owari" && notKoiKoiPlayer){
             roundHighestPoint.player = notKoiKoiPlayer;
             roundHighestPoint.point = this.#calculateYaku(notKoiKoiPlayer.displayYaku());
-        } //means triggered by not koikoi when prompted
+        } //triggered by choosing not to koikoi when prompted
 
         else if (koiKoiEvent === null && notKoiKoiPlayer === null){
             roundHighestPoint = allPlayers.reduce((hiPoint,player)=>{
@@ -1331,69 +1287,80 @@ class Hanafuda extends CardGame{
         winningPlayer.recordRoundResult("w",totalPoints);
         console.warn(winningPlayer.playerName," won this round with point: ",totalPoints);
         losingPlayers.forEach((lostPlayer)=>{
-            console.warn(lostPlayer.playerName, " lost");
+            console.warn(lostPlayer.playerName, " lost this round.");
             lostPlayer.recordRoundResult("l",0);
         });
 
-        Hanafuda.#Yaku.notification(winningPlayer,totalPoints,true);
+        Hanafuda.#Yaku.notification(winningPlayer,"tallyround",totalPoints);
     }
 
-    #koiKoi(player){
+    koiKoi(playerWithYaku){
+        const inactivePlayers = super.getInactivePlayers();
+        const nextPlayer = inactivePlayers[0]; //problem with >2 players .Probably make use of this.#doneTurnPlayer + filter allPlayers()
+        const nextPlayerTurn = new CustomEvent("nextplayerturn",{detail:nextPlayer});
+        const owari = new CustomEvent("owari",{detail:{player:playerWithYaku,reason:"Choose not to continue."}});
+        //never listened, a workaround to replace close dialog event used in previous build
+        const nextRound = new CustomEvent("nextround",{detail:{allPlayerIns:super.allPlayers(),winningPlayer:super.getActivePlayer(),closeKoiKoiEvt:owari}});
+        
         const koiKoiDialog = document.querySelector("#koiKoiDialog");
-
-        if (!koiKoiDialog){
-            const dialog = document.createElement("dialog");
-            const form = document.createElement("form");
-            const fieldset = document.createElement("fieldset");
-            const promptText = document.createElement("p");
-            const separationLine = document.createElement("hr");
-            const yesBtn = document.createElement("button");
-            const noBtn = document.createElement("button");
-    
-            dialog.setAttribute("id","koiKoiDialog");
-            dialog.setAttribute("lang","jp");
-            form.setAttribute("method","dialog");
-            form.setAttribute("name","koiKoiDialog");
-            promptText.textContent="こいこいしますか？";
-            yesBtn.setAttribute("type","submit");
-            yesBtn.setAttribute("value","yes");
-            yesBtn.setAttribute("class","yesButton");
-            yesBtn.textContent="はい";
-            noBtn.setAttribute("type","submit");
-            noBtn.setAttribute("value","no");
-            noBtn.setAttribute("class","noButton");
-            noBtn.textContent="いいえ";
-    
-            fieldset.insertAdjacentElement("afterbegin",promptText);
-            fieldset.insertAdjacentElement("beforeend",separationLine);
-            fieldset.insertAdjacentElement("beforeend",yesBtn);
-            fieldset.insertAdjacentElement("beforeend",noBtn);
-            form.insertAdjacentElement("beforeend",fieldset);
-            dialog.insertAdjacentElement("beforeend",form);
-    
-            dialog.addEventListener("close",(event)=>{
-                const inactivePlayers = super.getInactivePlayers();
-                if (!dialog.returnValue || dialog.returnValue === "yes"){
-                    console.log("KoiKoi selected. Proceed to next player!");
-                    const nextPlayer = inactivePlayers[0]; //problem with >2 players .Probably make use of this.#doneTurnPlayer + filter allPlayers()
-                    const nextPlayerTurn = new CustomEvent("nextplayerturn",{detail:nextPlayer});
-                    document.body.dispatchEvent(nextPlayerTurn);
-                }
-                else if (dialog.returnValue === "no"){
-                    console.log("Not KoiKoi. Player Wins. Go next round!");
-                    //Prev const nextRound = new CustomEvent("nextround",{detail:super.allPlayers()}); [Search Key :001]
-                    const nextRound = new CustomEvent("nextround",{detail:{allPlayerIns:super.allPlayers(),winningPlayer:super.getActivePlayer(),closeKoiKoiEvt:event}});
-                    //prev pass player, but it always stuck at first player enter koi koi due to the newer design where this dialog is no longer rerendered....
-                    //now the argument/para is useless
-                    document.body.dispatchEvent(nextRound); 
-                }
-            });
-            
-            document.body.insertAdjacentElement("beforeend",dialog);
-            dialog.showModal();
+        if (playerWithYaku instanceof CPU){ //[CPU Trial]
+            const cpuContinue = playerWithYaku.cpuKoiKoiDecision(this); //return a random Boolean
+            const cpuDecision = cpuContinue ? nextPlayerTurn : nextRound;
+            setTimeout(()=>{
+                document.body.dispatchEvent(cpuDecision);
+            },1000);
         }
 
-        else koiKoiDialog.showModal();
+        else {
+            if (koiKoiDialog){
+                koiKoiDialog.showModal();
+            }
+
+            else if (!koiKoiDialog){
+                const dialog = document.createElement("dialog");
+                const form = document.createElement("form");
+                const fieldset = document.createElement("fieldset");
+                const promptText = document.createElement("p");
+                const separationLine = document.createElement("hr");
+                const yesBtn = document.createElement("button");
+                const noBtn = document.createElement("button");
+        
+                dialog.setAttribute("id","koiKoiDialog");
+                dialog.setAttribute("lang","jp");
+                form.setAttribute("method","dialog");
+                form.setAttribute("name","koiKoiDialog");
+                promptText.textContent="こいこいしますか？";
+                yesBtn.setAttribute("type","submit");
+                yesBtn.setAttribute("value","yes");
+                yesBtn.setAttribute("class","yesButton");
+                yesBtn.textContent = "はい";
+                noBtn.setAttribute("type","submit");
+                noBtn.setAttribute("value","no");
+                noBtn.setAttribute("class","noButton");
+                noBtn.textContent = "いいえ";
+        
+                fieldset.insertAdjacentElement("afterbegin",promptText);
+                fieldset.insertAdjacentElement("beforeend",separationLine);
+                fieldset.insertAdjacentElement("beforeend",yesBtn);
+                fieldset.insertAdjacentElement("beforeend",noBtn);
+                form.insertAdjacentElement("beforeend",fieldset);
+                dialog.insertAdjacentElement("beforeend",form);
+        
+                dialog.addEventListener("close",(event)=>{
+                    if (!dialog.returnValue || dialog.returnValue === "yes"){
+                        console.log("KoiKoi selected. Proceed to next player!");
+                        document.body.dispatchEvent(nextPlayerTurn);
+                    }
+                    else if (dialog.returnValue === "no"){
+                        console.log("Not KoiKoi. Player Wins. Go next round!");
+                        document.body.dispatchEvent(nextRound);
+                    }
+                });
+                
+                document.body.insertAdjacentElement("beforeend",dialog);
+                dialog.showModal();
+            }
+        }
     }
 }
 
@@ -1469,7 +1436,7 @@ class Field extends CardHoldingEntity{
 
             handCards.forEach((handCard)=>{
                 if (pickedCardMonth === handCard.cardIdMonthNo) {
-                    handCard.associatedElm.classList.add("possibleMatch");
+                    handCard.associatedElement.classList.add("possibleMatch");
                     matchingCardCount++;
                 }
             });
@@ -1485,30 +1452,9 @@ class Field extends CardHoldingEntity{
             if (matchingCardCount <= 0){
                 console.log("No matchable card found.");
                 const dealCardToField = new CustomEvent("dealtofield",{detail:fieldIns});
-                cardPickedByPlayer.associatedElm.dispatchEvent(dealCardToField);
+                cardPickedByPlayer.associatedElement.dispatchEvent(dealCardToField);
             }
         }
-        
-        // tableDiv.addEventListener("findmatch",(event)=>{
-        //     console.log("findMatch",performance.now(),event.detail)
-        //     let matchingCardCount = 0;
-        //     const cardPickedByPlayer = event.detail; //a card instance
-        //     const pickedCardMonth = cardPickedByPlayer?.cardIdMonthNo;
-        //     document.querySelectorAll(".possibleMatch").forEach((element)=>{
-        //         element.classList.remove("possibleMatch");
-        //     });
-        //     handCards.forEach((handCard)=>{
-        //         if (pickedCardMonth === handCard.cardIdMonthNo) {
-        //             handCard.associatedElm.classList.add("possibleMatch");
-        //             matchingCardCount++;
-        //         }
-        //     });
-        //     if (matchingCardCount <= 0){
-        //         console.log("No matchable card found.");
-        //         const dealCardToField = new CustomEvent("dealtofield",{detail:this});
-        //         cardPickedByPlayer.associatedElm.dispatchEvent(dealCardToField);
-        //     }
-        // })
         //Previously encountered an issue where the eventlistener is attached on an element that don't get rerendered (aka "area"), and the handler gets attached multiple times
         //Even though the function is named..... unless you move it out of this function and store in let's say a static private method as its return method
         //Now the tableDiv gets rerendered all the time, so gets destroyed and re-attached again
@@ -1716,6 +1662,7 @@ class Player extends CardHoldingEntity{
                 cpuPlayer.cpuPickHandCard();
             },1000)}
         }
+
         //[CPU Trial]
         if(this instanceof CPU){
             handDiv.addEventListener("cpuaction",cpuTakeAction);
@@ -1743,16 +1690,22 @@ class CPU extends Player{ //[CPU Trial]
     cpuPickHandCard(){
         const cardsHeld = super.displayHand();
         const toDeal = cardsHeld[0]; //always deal 1st card in hand;
-        toDeal.associatedElm.classList.toggle("picked");
+        toDeal.associatedElement.classList.toggle("picked");
         const pickCard = new CustomEvent("pickcard",{detail:toDeal});
         console.warn("cpu deals the following card:",toDeal);
         document.body.dispatchEvent(pickCard);
     }
 
     cpuPickFieldCard(possibleMatches){
-        console.warn("cpu will match", possibleMatches);
+        console.warn("CPU will match", possibleMatches);
         setTimeout(()=>{
-            possibleMatches[0].click(); 
+            possibleMatches[0].click();
         },1000)
+    }
+
+    cpuKoiKoiDecision(gameInstance){
+        console.warn("CPU making KoiKoi Decision!", gameInstance);
+        const rand = Math.floor(Math.random() * 2);
+        return rand === 1 ? true : false;
     }
 }

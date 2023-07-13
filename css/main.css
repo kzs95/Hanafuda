@@ -37,19 +37,6 @@ html{
     }
     
 }
-/* ::-webkit-scrollbar {
-    inline-size: 8px;
-    block-size: 8px;
-}
-::-webkit-scrollbar-track {
-    background: lavender;
-}
-::-webkit-scrollbar-thumb {
-    background: pink;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: plum;
-} */
 
 a[target="_blank"]::after{
     content:"";
@@ -74,7 +61,7 @@ button > a{
 
 body{
     margin:auto;
-    height: min(97dvh, 900px);
+    height: 97dvh;
     width: min(95vw, 1000px);
     display:grid;
     grid-template-columns: 1fr;
@@ -83,12 +70,8 @@ body{
     filter: brightness(1);
 }
 
-/* body .hide{
-    z-index:-1;
-} */
-
 #home{
-    z-index:1;
+    z-index:5;
     grid-area: 1 / 1 / -1 / -1;
     display: grid;
     gap: 1rem;
@@ -192,7 +175,9 @@ body{
 
 /*main or game area styles*/
 main{
-    z-index:-1;
+    container-name: mainBox;
+    container-type: size;
+    z-index:0;
     grid-area: 1 / 1 / -1 / -1;
     background-color: #fce1fb;
     display: grid;
@@ -205,7 +190,7 @@ main{
 main > .areaField{
     container-name: cardsize;
     container-type: size;
-    padding:1rem;
+    padding:.8rem;
     background-color: #E6D3B5;
     /* background-color: #f0e0c7; */
     /* background-image: url(../assets/textures/paper.png);
@@ -223,12 +208,10 @@ main > .areaField{
 }
 
 #deck > .hanafudaCards{
-    z-index:1;
     position:absolute;
 }
 
 .areaField > #deck::after{
-    z-index:2;
     position: absolute;
     bottom:0%;
     right:0%;
@@ -252,14 +235,14 @@ main > .areaField{
     align-items: center;
     column-gap:.5rem;
     row-gap:.5rem;
-    /* overflow: auto; */
+    overflow: auto;
     padding:2px;
 }
 
 main > .areaHand{
     container-name: cardsize;
     container-type: size;
-    padding: 1rem .5rem 0 2rem; /*Left added 0.8rem To fit the areaHand ::before*, right -0.5 to give more space*/
+    padding: .8rem .5rem 0 2rem; /*Left added 0.8rem To fit the areaHand ::before*, right -0.5 to give more space*/
     background-color:#77ba7d;
     /* background-image: linear-gradient(to right,#1d3a31,#2f522e,#587544,#cdc082); */
     display: flex;
@@ -267,7 +250,7 @@ main > .areaHand{
     justify-content: flex-start;
     align-content: flex-start;
     align-items: flex-start;
-    row-gap:0.65rem;
+    row-gap:0.6rem;
     column-gap: 1rem;
     overflow: auto;
     position: relative;
@@ -320,22 +303,24 @@ main > .areaHand{
     backdrop-filter: invert(50%);
 }
 
-.captured::after{
+/* .captured::after{
     content:"24";
     font-size: .75rem;
     margin-left:.2px;
     position: absolute;
     left:100%;
     bottom:0%;
-}
+} */
+
 
 .captured > .hanafudaCards{
     grid-area: 1 / 1 / -1 / -1;
+    margin-left:calc(15px * (var(--index) - 1));
 }
 
 .hanafudaCards{
     /* border:1px solid black; */
-    width:60px;
+    width:70px;
     aspect-ratio:0.6;
     display:inline-block;
     /*Original svg from wikipedia is 512 x 839 px.*/
@@ -344,6 +329,116 @@ main > .areaHand{
     background-repeat: no-repeat;
     background-position: center;
     cursor: pointer;
+}
+
+/*All Kinds of Animation Classes*/
+.picked{
+    outline: #00637C solid 2px;
+}
+
+.possibleMatch{
+    outline:#6060C0ff solid 2px;
+    animation-name: flashingOutline;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes flashingOutline{
+    from{outline:#6060C0ff solid 2px;}
+    to{outline:#6060C000 solid 2px;}
+}
+
+.shiftBlack{
+    animation-name: fadeToBlack;
+    animation-timing-function: linear;
+    animation-duration: 1.5s;
+    animation-iteration-count: 1;
+}
+
+@keyframes fadeToBlack{
+    from{filter:brightness(100%);}
+    to{filter:brightness(0%);}
+}
+
+.shiftWhite{
+    animation-name: fadeIntoWiew;
+    animation-timing-function: linear;
+    animation-duration: 2s;
+    animation-delay: .5s;
+    animation-iteration-count: 1;
+}
+
+@keyframes fadeIntoWiew{
+    from{filter:brightness(0%);}
+    to{filter:brightness(100%);}
+}
+
+.fadeIn{
+    animation-name: fadeIn;
+    animation-timing-function: linear;
+    animation-delay: (var(--index) * 0.5s);
+    animation-duration: 1s;
+}
+
+@keyframes fadeIn{
+    from{opacity:0;}
+    to{opacity:1;}
+}
+
+.finalPoint{
+    border: 2px solid #2d3d54;
+    background-image: linear-gradient(to bottom,#4d6780,#a6b191);
+    margin-block: 1rem;
+    margin-inline: 0;
+    position:relative;
+}
+
+.finalPoint.winner{
+    border: 2px solid #842e15;
+    background-image: linear-gradient(to bottom,#ca887a,#d7bca1);
+}
+
+.finalPoint > p{
+    margin-block: 0;
+    padding-inline-start: 5px;
+
+}
+
+.finalPoint.winner::before{
+    position: absolute;
+    bottom: 0%;
+    right: 0%;
+    transform: translate(50%, 50%);
+    padding-inline: 5px;
+    content: "勝";
+    background-color:#d8b07b;
+    border: 1px solid #cc8140;
+}
+
+#gameSummaryDialog{
+    font-size: clamp(14px,1rem,20px);
+    border-color: #23354e;
+    background-color: #e4d7b4;
+    background-image:  radial-gradient(farthest-side at top right,#d4a670,#dac89e);
+}
+#gameSummaryDialog > p{
+    font-size: 1.1rem;
+    color:#0e1d33;
+    margin-block-start: 0;
+}
+
+#gameSummaryDialog > .endButton{
+    color:#0e1d33;
+    font-size: 1.2rem;
+    /* font-family: inherit;
+    border: 2px solid #23354e;
+    background-color: #ddca9f;
+    padding-inline: 0.5rem; */
+}
+
+#gameSummaryDialog::backdrop{
+    background-color: #e1a3833d;
+    backdrop-filter:blur(5px);
 }
 
 @container cardsize (width >= 860px){
@@ -424,7 +519,7 @@ main > .areaHand{
     }
 }
 
-@container cardsize (width < 410px){
+@container cardsize (310px <= width < 410px){
     .hand{
         column-gap: .15rem;
     }
@@ -440,114 +535,54 @@ main > .areaHand{
     }
 }
 
-/*All Kinds of Animation Classes*/
-.picked{
-    outline: #00637C solid 2px;
+@container cardsize (width < 310px){
+    .hand{
+        column-gap: .1rem;
+    }
+    .hanafudaCards{
+        width:30px;
+        background-color:wheat;
+    }
+    .captured > .hanafudaCards{
+        margin-left:calc(3px * (var(--index) - 1));
+    }
+    .areaField > #table{
+        gap:.15rem;
+    }
 }
 
-.possibleMatch{
-    outline:#6060C0ff solid 2px;
-    animation-name: flashingOutline;
-    animation-duration: 1s;
-    animation-iteration-count: infinite;
+@media screen and (max-width:1000px) and (orientation:landscape) and (aspect-ratio > 1.7){
+    main > #handCPU{
+        grid-area:cpu;
+    }
+    main > #handField{
+        grid-area:field;
+    }
+    main > #handPlayer{
+        grid-area:player;
+    }
+    main{
+        grid-area: 1 / 1 / -1 / -1;
+        background-color: #fce1fb;
+        display: grid;
+        grid-template-areas:
+        "field player"
+        "cpu player";
+        grid-template-columns: repeat(2,1fr);
+        grid-template-rows: repeat(2,1fr);
+        align-items: stretch;
+        justify-items: stretch;
+    }
+    #home{
+        grid-area: 1 / 1 / -1 / -1;
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: 1fr 30%;
+        grid-template-rows: 1fr;
+        align-items: end;
+        justify-items: start;
+    }
+    #home #homeMenu {
+        padding-left:0;
+    }
 }
-
-@keyframes flashingOutline{
-    from{outline:#6060C0ff solid 2px;}
-    to{outline:#6060C000 solid 2px;}
-}
-
-.shiftBlack{
-    animation-name: fadeToBlack;
-    animation-timing-function: linear;
-    animation-duration: 1.5s;
-    animation-iteration-count: 1;
-}
-
-@keyframes fadeToBlack{
-    from{filter:brightness(100%);}
-    to{filter:brightness(0%);}
-}
-
-.shiftWhite{
-    animation-name: fadeIntoWiew;
-    animation-timing-function: linear;
-    animation-duration: 2s;
-    animation-delay: .5s;
-    animation-iteration-count: 1;
-}
-
-@keyframes fadeIntoWiew{
-    from{filter:brightness(0%);}
-    to{filter:brightness(100%);}
-}
-
-.fadeIn{
-    animation-name: fadeIn;
-    animation-timing-function: linear;
-    animation-delay: (var(--index) * 0.5s);
-    animation-duration: 1s;
-}
-
-@keyframes fadeIn{
-    from{opacity:0;}
-    to{opacity:1;}
-}
-
-.finalPoint{
-    border: 2px solid #2d3d54;
-    background-image: linear-gradient(to bottom,#4d6780,#a6b191);
-    margin-block: 1rem;
-    margin-inline: 0;
-    position:relative;
-}
-
-.finalPoint.winner{
-    border: 2px solid #842e15;
-    background-image: linear-gradient(to bottom,#ca887a,#d7bca1);
-}
-
-.finalPoint > p{
-    margin-block: 0;
-    padding-inline-start: 5px;
-
-}
-
-.finalPoint.winner::before{
-    z-index:2;
-    position: absolute;
-    bottom: 0%;
-    right: 0%;
-    transform: translate(50%, 50%);
-    padding-inline: 5px;
-    content: "勝";
-    background-color:#d8b07b;
-    border: 1px solid #cc8140;
-}
-
-#gameSummaryDialog{
-    font-size: clamp(14px,1rem,20px);
-    border-color: #23354e;
-    background-color: #e4d7b4;
-    background-image:  radial-gradient(farthest-side at top right,#d4a670,#dac89e);
-}
-#gameSummaryDialog > p{
-    font-size: 1.1rem;
-    color:#0e1d33;
-    margin-block-start: 0;
-}
-
-#gameSummaryDialog > .endButton{
-    color:#0e1d33;
-    font-size: 1.2rem;
-    /* font-family: inherit;
-    border: 2px solid #23354e;
-    background-color: #ddca9f;
-    padding-inline: 0.5rem; */
-}
-
-#gameSummaryDialog::backdrop{
-    background-color: #e1a3833d;
-    backdrop-filter:blur(5px);
-}
-
