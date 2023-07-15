@@ -102,6 +102,12 @@ body{
     }
 }
 
+#home #homePageGraphics{
+    position: relative;
+    border:2px ridge red;
+}
+
+
 #home #homeMenu{
     display:flex;
     flex-flow:column wrap;
@@ -174,6 +180,16 @@ body{
 }
 
 /*main or game area styles*/
+#cardMovementLayer{
+    z-index:1;
+    grid-area: 1 / 1 / -1 / -1;
+    position: relative;
+}
+
+#cardMovementLayer > .hanafudaCards{
+    position: absolute;
+}
+
 main{
     container-name: mainBox;
     container-type: size;

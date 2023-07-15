@@ -8,15 +8,13 @@ const homeDiv = document.querySelector("#home");
 const startButton = document.querySelector("#buttonGameStart")
 const optionButton = document.querySelector("#buttonGameOption");
 const optionDialog = document.querySelector("#gameOptionDialog");
+const homeGraphics = document.querySelector("#homePageGraphics");
 
 //Elements from <main id="game"> aka Elements of card display areas
 let gamePage = document.querySelector("main");
 let gameAreaCPU = document.querySelector("#handCPU");
 let gameAreaPlayer = document.querySelector("#handPlayer");
 let gameAreaField = document.querySelector("#handField");
-//let gameAreaDeck = document.querySelector("#deck");
-//let gameAreaTable = document.querySelector("#table");
-//They both don't exists yet!
 
 //Home Page Events
 startButton.addEventListener("click", gameInitialization);
@@ -131,7 +129,8 @@ function gameInitialization(event){
             bodyClassList.remove("shiftBlack");
             cancelAnimationFrame(animationRequest);
         };
-    })
+    });
+
     setTimeout(()=>{
         hanafudaGameNewRound();
     },1600);

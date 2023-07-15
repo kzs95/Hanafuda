@@ -123,9 +123,70 @@ class Card{
         return path;
     }
 
+    static #animateCard(cardToAnimate,endLocation){
+        const layer = document.createElement("div");
+        const elemCardToAnimate = cardToAnimate.associatedElement;
+        const elemEndLocation = endLocation instanceof Card ? endLocation.associatedElement : endLocation.accessElement(); //endLocation either instance of Card or Field
+        const movingCard = elemCardToAnimate.cloneNode(true);
+        movingCard.className = "hanafudaCards"; //ensure only 1 class, having the pick/from deck doesn't seem to affect other logic
+    
+        layer.setAttribute("id","cardMovementLayer");
+        layer.insertAdjacentElement("beforeend",movingCard);
+        document.body.insertAdjacentElement("beforeend",layer);
+
+        const {x:layerXCoord,y:layerYCoord} = layer.getBoundingClientRect();
+        const {x:startXCoord,y:startYCoord} = elemCardToAnimate.getBoundingClientRect();
+        const {x:endXCoord,y:endYCoord,width:elmWidth,height:elmHeight} = elemEndLocation.getBoundingClientRect();
+
+        const startCoordVSLayer = {x:startXCoord - layerXCoord, y:startYCoord - layerYCoord, __proto__:null};
+        const endCoordVSLayer = {x:endXCoord - layerXCoord, y:endYCoord - layerYCoord, __proto__:null};
+        
+        //set initial position of card to be moved & make original card invisible
+        movingCard.style.top = `${startCoordVSLayer.y}px`;
+        movingCard.style.left = `${startCoordVSLayer.x}px`;
+        elemCardToAnimate.style.visibility = "hidden";
+
+        let distX,distY;
+        if (endLocation instanceof Card){
+            distX = endCoordVSLayer.x - startCoordVSLayer.x;
+            distY = endCoordVSLayer.y - startCoordVSLayer.y;
+        }
+        else if (endLocation instanceof Field){
+            distX = (endCoordVSLayer.x + (elmWidth/2)) - startCoordVSLayer.x;
+            distY = (endCoordVSLayer.y  + (elmHeight/2)) - startCoordVSLayer.y;
+        }
+
+        let startTime;
+        requestAnimationFrame(function moveCard(timestamp){
+            let moveCardAnimation;
+            startTime ??= timestamp;
+            const elapsedTime = timestamp - startTime;
+
+            const absDistX = Math.abs(distX);
+            const absDistY = Math.abs(distY);
+            const moveX = Math.min(elapsedTime * (absDistX / 500), absDistX);
+            const moveY = Math.min(elapsedTime * (absDistY / 500), absDistY);
+            //for offset-path
+            //const displacement = absDistX / Math.cos(Math.atan(absDistY / absDistX));
+            // const pathText = `path("M${startCoordVSLayer.x} ${startCoordVSLayer.y} L${endCoordVSLayer.x} ${endCoordVSLayer.y}")`;
+            // movingCard.style.offsetPath = pathText;
+
+            movingCard.style.transform = `translate(${Math.sign(distX)*moveX}px,${Math.sign(distY)*moveY}px`;
+
+            if (elapsedTime < 5000){
+                movingCard.style.offsetDistance = `${(elapsedTime / 5000) * 100}%`;
+                moveCardAnimation = requestAnimationFrame(moveCard);
+            }
+            if (elapsedTime >= 5000){
+                layer.remove();
+                cancelAnimationFrame(moveCardAnimation);
+            }
+        })
+    }
+
     renderCard({faceUp = true , listenerType = "none"}){
         let cardDiv = document.createElement("div");
-        cardDiv.setAttribute("id",this.cardId);
+        //cardDiv.setAttribute("id",this.cardId);
         cardDiv.setAttribute("class","hanafudaCards");
         if (faceUp){
             cardDiv.style.setProperty("background-image",this.#getResourcePath())
@@ -187,13 +248,14 @@ class Card{
         const cardIns = this;
 
         function captureCardHandler(event){
-            const fieldCardToCapture = event.detail; //contain instance if Card (located at Field)
+            const fieldCardToCapture = event.detail; //contain instance of Card (located at Field)
             const pickedCard = cardIns;
             const pickedCardOwner = pickedCard.getOwner();
+            // Card.#animateCard(pickedCard,fieldCardToCapture); //[Animation Trial]
+            //To use this garbage animation, need to wrap the code below using setTimeout with whatever time limit used in animate to make it look sequential
             pickedCardOwner?.giveAwayCard(pickedCard);
             fieldCardToCapture.getOwner()?.giveAwayCard(fieldCardToCapture);
             pickedCardOwner.capture(pickedCard,fieldCardToCapture);
-
             const actionComplete = new CustomEvent("actioncompleted",{detail:pickedCardOwner});
             pickedCard.associatedElement.dispatchEvent(actionComplete);
         }
@@ -202,11 +264,10 @@ class Card{
             const fieldInstance = event.detail; //contain instance of Field
             const pickedCard = cardIns;
             const pickedCardOwner = pickedCard.getOwner();
+            // Card.#animateCard(pickedCard,fieldInstance);//[Animation Trial]
             const dealtCard = pickedCardOwner?.giveAwayCard(pickedCard);
             fieldInstance.receive(dealtCard);
-
             console.log(pickedCardOwner,"dealt the following Card:",pickedCard)
-
             const actionComplete = new CustomEvent("actioncompleted",{detail:pickedCardOwner});
             pickedCard.associatedElement.dispatchEvent(actionComplete);
         }
@@ -1182,7 +1243,7 @@ class Hanafuda extends CardGame{
 
             if (followUp === "koikoi"){
                 const title = document.createElement("p");
-                title.innerText = `${playerToNotify.playerName}\r\n出来役`;
+                title.textContent = `出来役 * ${playerToNotify.playerName}`;
                 title.style.cssText = "color:#173d75;margin-block-start:0;"
                 dialog.insertAdjacentElement("afterbegin",title);
             }
