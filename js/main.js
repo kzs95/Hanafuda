@@ -8,7 +8,10 @@ const homeDiv = document.querySelector("#home");
 const startButton = document.querySelector("#buttonGameStart")
 const optionButton = document.querySelector("#buttonGameOption");
 const optionDialog = document.querySelector("#gameOptionDialog");
+
+//Animated Elements from <div id="home">
 const homeGraphics = document.querySelector("#homePageGraphics");
+const homeMoon = document.querySelector("#moon");
 
 //Elements from <main id="game"> aka Elements of card display areas
 let gamePage = document.querySelector("main");
@@ -16,8 +19,29 @@ let gameAreaCPU = document.querySelector("#handCPU");
 let gameAreaPlayer = document.querySelector("#handPlayer");
 let gameAreaField = document.querySelector("#handField");
 
-//Home Page Events
-startButton.addEventListener("click", gameInitialization);
+//Game related instances
+const player = new Player(gameAreaPlayer,"プレイヤー");
+const cpu = new CPU(gameAreaCPU,"CPU");
+const table = new Field(gameAreaField);
+const hanafudaGame = new Hanafuda(window.hanafudaOptions ?? new HanafudaGameOptions(),[player,cpu],table,12);
+
+//Other Instances
+const homeGraphicsObserver = new ResizeObserver(moonPathChanger);
+homeGraphicsObserver.observe(homeGraphics,{box:"content-box"});
+
+function moonPathChanger(resizeEntries, observer){
+    const homeGraphicsBox = homeGraphics.getBoundingClientRect();
+    const homeMoonBox = homeMoon.getBoundingClientRect();
+    const initialPtX = homeMoonBox.width/2; //0
+    const initialPtY = homeGraphicsBox.height + (homeMoonBox.height/2); //start visible at bottom left corner: homeGraphicsBox.height-(homeMoonBox.height/2)
+    const endPtX = homeGraphicsBox.width - (homeMoonBox.width/1.5);
+    const endPtY = homeMoonBox.height/2;
+    const moonPath = `path('M${initialPtX} ${initialPtY} C${initialPtX} ${initialPtY}, 0 0, ${endPtX} ${endPtY}')`;
+    homeMoon.style.offsetPath = moonPath;
+}
+
+//Events
+window.addEventListener("DOMContentLoaded",moonPathChanger);
 
 optionButton.addEventListener("click",()=>{
     if(!document.querySelector("#gameOptionForm")){
@@ -25,15 +49,10 @@ optionButton.addEventListener("click",()=>{
         optionDialog.appendChild(generatedForm);
     }
     optionDialog.showModal();
-})
+});
 
-//Game related instances
-const player = new Player(gameAreaPlayer,"プレイヤー");
-const cpu = new CPU(gameAreaCPU,"CPU");
-const table = new Field(gameAreaField);
-const hanafudaGame = new Hanafuda(window.hanafudaOptions ?? new HanafudaGameOptions(),[player,cpu],table,2);
+startButton.addEventListener("click", gameInitialization);
 
-//In Game Events Testing Ground
 document.body.addEventListener("pickcard",(event)=>{
     console.warn("'pickcard'Event => Player selected : ",event.detail);
     const findMatch = new CustomEvent("findmatch",{detail:event.detail});
@@ -107,7 +126,6 @@ document.body.addEventListener("gameend",(event)=>{
     endHanafudaGame();
 })
 
-//End of testing area
 
 function gameInitialization(event){
     let clickTime;
@@ -153,15 +171,12 @@ function hanafudaGameNewRound(){
             entity.receive(drawnCards,false); //only render when have all cards
         })
     }while(masterDeck.remainingCardCount > 24);
-
-    //player.artificialInjectCard(hanafudaGame.newDeck().draw(30));
-    console.log(hanafudaGame);
-
+    // player.artificialInjectCard(hanafudaGame.newDeck().draw(30));
+    // console.log(hanafudaGame);
     masterDeck.renderDeck();
     player.renderArea();
     cpu.renderArea();
     table.renderArea();
-
     hanafudaGame.proceedtoNextPlayer(oyaPlayer);
 }
 
@@ -183,5 +198,4 @@ function endHanafudaGame(){
             location.reload();
         };
     })
-    
 }

@@ -1,7 +1,8 @@
 @import url("quasi-counter.css");
-
+/*Blanket & General Purpose Styles*/
 *{
     box-sizing: border-box;
+    line-height: 1.3;
 }
 
 html{
@@ -11,31 +12,6 @@ html{
 *[lang="jp"]{
    font-family: "New Tegomin", serif;
    writing-mode: vertical-rl;
-}
-
-@media (hover:hover){
-    #home button:hover{
-        /* background: linear-gradient(to right,#FFD700,20%,transparent); */
-        background: linear-gradient(to right,#FFD700ff,20%,#FFD70000);
-        border-bottom:1px solid #bda106;
-        transform: translateX(10px)
-    }
-
-    .hanafudaCards:hover{
-        /* outline: red solid 2px; */
-        box-shadow: 0 0 3px 3px #476580;
-        z-index:99;
-    }
-    .yesButton:hover{
-        text-shadow: #1CAC78 4px 3px 5px;
-    }
-    .noButton:hover{
-        text-shadow: #F2003C 4px 3px 5px;
-    }
-    .endButton:hover{
-        text-shadow: #83adbb 4px 3px 5px;
-    }
-    
 }
 
 a[target="_blank"]::after{
@@ -59,6 +35,29 @@ button > a{
     cursor: pointer;
 }
 
+@media (hover:hover){
+    #home button:hover{
+        /* background: linear-gradient(to right,#FFD700,20%,transparent); */
+        background: linear-gradient(to right,#FFD700ff,20%,#FFD70000);
+        border-bottom:1px solid #bda106;
+        transform: translateX(10px)
+    }
+    .hanafudaCards:hover{
+        /* outline: red solid 2px; */
+        box-shadow: 0 0 3px 3px #476580;
+        z-index:99;
+    }
+    .yesButton:hover{
+        text-shadow: #1CAC78 4px 3px 5px;
+    }
+    .noButton:hover{
+        text-shadow: #F2003C 4px 3px 5px;
+    }
+    .endButton:hover{
+        text-shadow: #83adbb 4px 3px 5px;
+    }
+}
+
 body{
     margin:auto;
     height: 97dvh;
@@ -70,13 +69,14 @@ body{
     filter: brightness(1);
 }
 
+/*Home Page Elements*/
 #home{
     z-index:5;
     grid-area: 1 / 1 / -1 / -1;
     display: grid;
     gap: 1rem;
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr 20%;
+    grid-template-rows: 1fr 25%;
     align-items: start;
     justify-items: start;
     padding: 2rem;
@@ -103,20 +103,101 @@ body{
 }
 
 #home #homePageGraphics{
+    grid-area: 1 / 1 / 2 / -1;
     position: relative;
-    border:2px ridge red;
+    border:2px solid rgb(231, 181, 181);
+    width:100%;
+    height:100%;
+    overflow: hidden;
 }
 
+#homePageGraphics > #creditIllus{
+    z-index:var(--index);
+    font-size: 1rem;
+    position: absolute;
+    right:0%;
+    bottom: 0%;
+    writing-mode: horizontal-tb;
+    margin: 0 0.5rem 0.5rem 0;
+}
+
+#homePageGraphics > #title{
+    z-index:var(--index);
+    position: absolute;
+    top:0%;
+    left:0%;
+    margin-block: 0;
+    font-size: 6rem;
+    color:#eb4141;
+    text-shadow: 0 0 1rem #ebb550;
+}
+#homePageGraphics > #flowermomo{
+    z-index:var(--index);
+    position: absolute;
+    bottom: 0%;
+    aspect-ratio: 1;
+    width:min(100%,380px);
+    background-image: url(../assets/textures/flower_momo.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-color: transparent;
+}
+
+#homePageGraphics > #flowersakura{
+    z-index:var(--index);
+    position: absolute;
+    bottom: 30%;
+    right: 0%;
+    aspect-ratio: 47/37;
+    width:min(100%,470px);
+    background-image: url(../assets/textures/sakura_kaika.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-color: transparent;
+    filter:blur(0.5px);
+}
+
+#homePageGraphics > #flowersakurainvert{
+    z-index:var(--index);
+    position: absolute;
+    bottom: 0%;
+    aspect-ratio: 47/37;
+    width:min(100%,470px);
+    background-image: url(../assets/textures/sakura_kaika.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-color: transparent;
+    transform: scaleX(-1);
+    filter:drop-shadow(0 0 5px pink)
+}
+
+#homePageGraphics > #moon{
+    z-index:var(--index);
+    position: absolute;
+    aspect-ratio: 1;
+    width:min(45%,200px);
+    background-color: transparent;
+    background-image: url(../assets/textures/moon.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    animation-name: moonPath;
+    animation-duration: 8s;
+    animation-timing-function: ease;
+    animation-iteration-count: 1;
+    animation-direction: normal;
+    animation-fill-mode: forwards;
+    offset-rotate: 90deg;
+}
 
 #home #homeMenu{
     display:flex;
     flex-flow:column wrap;
     column-gap:1rem;
-    row-gap:1rem;
+    row-gap:0.9rem;
     justify-content: flex-start;
     align-content: flex-start;
     align-items: stretch;
-    padding-left: 1.5rem;
+    padding-left: 1rem;
 }
 
 /* For some reason the linear-gradient to transparent won't work properly in Firefox. 
@@ -126,13 +207,19 @@ body{
     /* background: linear-gradient(to right,plum,20%,transparent); */
     background: linear-gradient(to right,#DDA0DDff,20%,#DDA0DD00);
     border:transparent;
-    border-bottom:1px solid #FFD700;
-    font-size: 1.2rem;
+    /* border-bottom:1px solid #FFD700; */
+    font-size: 1.15rem;
     font-family: "Cormorant Infant", Georgia, serif;
     text-transform: uppercase;
     text-align: left;
 }
 
+#creditCardIllus{
+    margin:0;
+    padding: 0;
+}
+
+/*General Purpose Dialog Elements*/
 :is(.newYakuNotification, #gameOptionDialog, #koiKoiDialog){
     font-size: clamp(14px,1rem,20px);
     border-color:#4C8451;
@@ -161,7 +248,6 @@ body{
 .roundResultText > .highlights{
     color:#CC5500
 }
-
 :is(.yesButton,.noButton,.endButton){
     background-color: #FCD7DD00;
     margin-inline-end: 1.5rem;
@@ -179,17 +265,7 @@ body{
     color: #EF0107;
 }
 
-/*main or game area styles*/
-#cardMovementLayer{
-    z-index:1;
-    grid-area: 1 / 1 / -1 / -1;
-    position: relative;
-}
-
-#cardMovementLayer > .hanafudaCards{
-    position: absolute;
-}
-
+/*Game Area aka. <main>*/
 main{
     container-name: mainBox;
     container-type: size;
@@ -203,6 +279,7 @@ main{
     justify-items: stretch;
 }
 
+/*Table & Deck Region*/
 main > .areaField{
     container-name: cardsize;
     container-type: size;
@@ -255,6 +332,7 @@ main > .areaField{
     padding:2px;
 }
 
+/*Player Region*/
 main > .areaHand{
     container-name: cardsize;
     container-type: size;
@@ -285,6 +363,7 @@ main > .areaHand{
     padding-inline-start: 5px;
 } 
 
+/*Hand Cards Region*/
 .hand{
     display:flex;
     flex-flow:row wrap;
@@ -311,6 +390,7 @@ main > .areaHand{
     padding-inline: 5px;
 } 
 
+/*Captured Cards Region*/
 .captured{
     display: grid;
     grid-template-columns: 1fr;
@@ -328,12 +408,23 @@ main > .areaHand{
     bottom:0%;
 } */
 
-
 .captured > .hanafudaCards{
     grid-area: 1 / 1 / -1 / -1;
     margin-left:calc(15px * (var(--index) - 1));
 }
 
+/*Card Movement Layer*/
+#cardMovementLayer{
+    z-index:1;
+    grid-area: 1 / 1 / -1 / -1;
+    position: relative;
+}
+
+#cardMovementLayer > .hanafudaCards{
+    position: absolute;
+}
+
+/*General Purpose Card Style*/
 .hanafudaCards{
     /* border:1px solid black; */
     width:70px;
@@ -347,60 +438,7 @@ main > .areaHand{
     cursor: pointer;
 }
 
-/*All Kinds of Animation Classes*/
-.picked{
-    outline: #00637C solid 2px;
-}
-
-.possibleMatch{
-    outline:#6060C0ff solid 2px;
-    animation-name: flashingOutline;
-    animation-duration: 1s;
-    animation-iteration-count: infinite;
-}
-
-@keyframes flashingOutline{
-    from{outline:#6060C0ff solid 2px;}
-    to{outline:#6060C000 solid 2px;}
-}
-
-.shiftBlack{
-    animation-name: fadeToBlack;
-    animation-timing-function: linear;
-    animation-duration: 1.5s;
-    animation-iteration-count: 1;
-}
-
-@keyframes fadeToBlack{
-    from{filter:brightness(100%);}
-    to{filter:brightness(0%);}
-}
-
-.shiftWhite{
-    animation-name: fadeIntoWiew;
-    animation-timing-function: linear;
-    animation-duration: 2s;
-    animation-delay: .5s;
-    animation-iteration-count: 1;
-}
-
-@keyframes fadeIntoWiew{
-    from{filter:brightness(0%);}
-    to{filter:brightness(100%);}
-}
-
-.fadeIn{
-    animation-name: fadeIn;
-    animation-timing-function: linear;
-    animation-delay: (var(--index) * 0.5s);
-    animation-duration: 1s;
-}
-
-@keyframes fadeIn{
-    from{opacity:0;}
-    to{opacity:1;}
-}
-
+/*Final Point & Winner Screen Dialog*/
 .finalPoint{
     border: 2px solid #2d3d54;
     background-image: linear-gradient(to bottom,#4d6780,#a6b191);
@@ -417,7 +455,6 @@ main > .areaHand{
 .finalPoint > p{
     margin-block: 0;
     padding-inline-start: 5px;
-
 }
 
 .finalPoint.winner::before{
@@ -457,6 +494,78 @@ main > .areaHand{
     backdrop-filter:blur(5px);
 }
 
+/*All Kinds of Animation Classes*/
+/*Cards Animation*/
+.picked{
+    outline: #00637C solid 2px;
+}
+
+.possibleMatch{
+    outline:#6060C0ff solid 2px;
+    animation-name: flashingOutline;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes flashingOutline{
+    from{outline:#6060C0ff solid 2px;}
+    to{outline:#6060C000 solid 2px;}
+}
+
+/*Screen Fade Animation*/
+.shiftBlack{
+    animation-name: fadeToBlack;
+    animation-timing-function: linear;
+    animation-duration: 1.5s;
+    animation-iteration-count: 1;
+}
+
+@keyframes fadeToBlack{
+    from{filter:brightness(100%);}
+    to{filter:brightness(0%);}
+}
+
+.shiftWhite{
+    animation-name: fadeIntoWiew;
+    animation-timing-function: linear;
+    animation-duration: 2s;
+    animation-delay: .5s;
+    animation-iteration-count: 1;
+}
+
+@keyframes fadeIntoWiew{
+    from{filter:brightness(0%);}
+    to{filter:brightness(100%);}
+}
+
+/*Delayed Text Animation*/
+.fadeIn{
+    animation-name: fadeIn;
+    animation-timing-function: linear;
+    animation-delay: (var(--index) * 0.5s);
+    animation-duration: 1s;
+}
+
+@keyframes fadeIn{
+    from{opacity:0;}
+    to{opacity:1;}
+}
+
+/*Moon Animation*/
+@keyframes moonPath{
+    from{
+        filter: brightness(0.8);
+        offset-distance: 0%;
+        opacity: 0;
+    }
+    to{
+        filter: brightness(1.3) drop-shadow(0 0 7rem #ffff00);
+        offset-distance: 100%;
+        opacity: 1;
+    }
+}
+
+/*Card Sizing and Horizontal Mode*/
 @container cardsize (width >= 860px){
     .hand{
         column-gap: .8rem;
@@ -599,6 +708,18 @@ main > .areaHand{
         justify-items: start;
     }
     #home #homeMenu {
+        grid-area: 1 / 2 / -1 / -1;
         padding-left:0;
+    }
+
+    #home #homePageGraphics{
+        grid-area: 1 / 1 / -1 / 2;
+    }
+    #homePageGraphics > #flowersakura{
+        display:none;
+    }
+    #homePageGraphics > #flowersakurainvert{
+        width: auto;
+        height: 100%;
     }
 }

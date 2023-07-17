@@ -17,11 +17,20 @@
 </head>
 <body>
     <div id="home">
-        <div id="homePageGraphics"></div>
+        <div id="homePageGraphics">
+            <!-- Z-index determined by order, earlier child lower in stack. (Quasi-counter)-->
+            <div id="moon"></div>
+            <div id="flowersakura"></div>
+            <div id="flowersakurainvert"></div>
+            <!-- <div id="flowermomo"></div> -->
+            <div id="title" lang="jp">花札</div>
+            <div id="creditIllus" lang="jp">Illustration:<br/>&copy; <a href="https://www.irasutoya.com/" target="_blank">いらすとや</a></div>
+        </div>
         <div id="homeMenu">
             <button id="buttonGameStart">Start</button>
             <button id="buttonGameOption">Option</button>
             <button id="buttonHowTo"><a href="https://www.nintendo.co.jp/others/hanafuda_kabufuda/howtoplay/index.html" target="_blank">How to Play</a></button>
+            <p id="creditCardIllus">Card Illustrations: &copy; <a href="//commons.wikimedia.org/wiki/User:Louiemantia" title="User:Louiemantia" target="_blank">Louie Mantia</a> | License: <a href="https://creativecommons.org/licenses/by-sa/4.0" title="Creative Commons Attribution-Share Alike 4.0" target="_blank">CC BY-SA 4.0</a></p>
         </div>
         <dialog id="gameOptionDialog" lang="jp"></dialog>
     </div>
