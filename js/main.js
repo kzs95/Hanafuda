@@ -111,7 +111,6 @@ document.body.addEventListener("nextround",(event)=>{
 //If no more rounds, summariseGame will fire an gameend event
 document.body.addEventListener("startnewround",(event)=>{
     hanafudaGame.newRound(); //now newRound() does all the resetting... no need .resetStatusForNextRound() on each player ins
-    //event.detail contains game instance, which is not really necessary to use, aka same as hanafudaGame
     if (hanafudaGame.checkRemainingRounds() <= 0){
         hanafudaGame.summariseGame();
     }
@@ -125,7 +124,6 @@ document.body.addEventListener("gameend",(event)=>{
     if (!document.body.hasAttribute("inert")) document.body.toggleAttribute("inert");
     endHanafudaGame();
 })
-
 
 function gameInitialization(event){
     let clickTime;
